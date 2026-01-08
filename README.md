@@ -15,7 +15,7 @@ to read, search, traverse, parse and display.
 ### gather 
 
 Here messages that are sent and received from a set of servers (currently
-HTTP) are gathered an stored in a file. `tshark` is currently to be used
+HTTP) are gathered an stored in a file. **tshark** is currently to be used
 for this process.
 
 ### list
@@ -28,6 +28,10 @@ format. This makes it easy to
 
 ### display
 
-The markdown is used to display visually using D3 or mermaid.
+The markdown generated above is used for visual display using **D3** or 
+**mermaid**.
 
+## The implementation
+
+**TODO**
 

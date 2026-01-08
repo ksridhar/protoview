@@ -90,7 +90,12 @@ def cmd_capture(args: argparse.Namespace) -> int:
         if proc is None:
             return
 
-        sig_name = signal.Signals(signum).name if signum in signal.Signals else str(signum)
+        # Python 3.8: don't do "signum in signal.Signals" (EnumMeta membership is invalid).
+        try:
+            sig_name = signal.Signals(signum).name
+        except ValueError:
+            sig_name = str(signum)
+
         _vprint(args.verbose, f"received signal : {sig_name} ({signum})")
         _vprint(args.verbose, "forwarding to dumpcap for graceful shutdown...")
 

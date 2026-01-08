@@ -11,10 +11,12 @@ from __future__ import annotations
 import argparse
 import os
 import shlex
+import signal
 import subprocess
 import sys
+import time
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 
 def _default_pcap_name() -> str:
@@ -33,6 +35,7 @@ def _parse_port(s: str) -> int:
 
 
 def _build_bpf_filter(ports: List[int]) -> str:
+    # tcp and (port 5173 or port 8080 or ...)
     ors = " or ".join(f"port {p}" for p in ports)
     return f"tcp and ({ors})"
 
@@ -52,6 +55,7 @@ def cmd_capture(args: argparse.Namespace) -> int:
 
     ports = args.ports
     if not ports:
+        # argparse enforces this, but keep it explicit.
         print("ERROR: at least one PORT is required.", file=sys.stderr)
         return 2
 
@@ -66,33 +70,91 @@ def cmd_capture(args: argparse.Namespace) -> int:
 
     tshark_cmd = [
         "tshark",
-        "-i", "lo",
-        "-f", bpf,
-        "-w", out,
+        "-i",
+        "lo",
+        "-f",
+        bpf,
+        "-w",
+        out,
     ]
 
-    _vprint(args.verbose, f"exec            : {shlex.join(tshark_cmd)}")
+    # Run tshark as a child process so we can forward Ctrl+C / SIGTERM to it.
+    # This helps ensure tshark closes the pcap cleanly (flush/finalize) on exit.
+    _vprint(args.verbose, f"exec           : {shlex.join(tshark_cmd)}")
+
+    proc: Optional[subprocess.Popen[bytes]] = None
+
+    def _shutdown(signum: int, _frame) -> None:
+        nonlocal proc
+        if proc is None:
+            return
+
+        sig_name = signal.Signals(signum).name if signum in signal.Signals else str(signum)
+        _vprint(args.verbose, f"received signal : {sig_name} ({signum})")
+        _vprint(args.verbose, "forwarding to tshark for graceful shutdown...")
+
+        # Forward the same signal to tshark.
+        try:
+            proc.send_signal(signum)
+        except ProcessLookupError:
+            return
+
+        # Give tshark time to close the capture file properly.
+        try:
+            proc.wait(timeout=3.0)
+            return
+        except subprocess.TimeoutExpired:
+            _vprint(args.verbose, "tshark did not exit in time; escalating to SIGTERM...")
+            try:
+                proc.terminate()
+            except ProcessLookupError:
+                return
+
+        try:
+            proc.wait(timeout=2.0)
+            return
+        except subprocess.TimeoutExpired:
+            _vprint(args.verbose, "tshark still running; escalating to SIGKILL...")
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                return
+
+    # Install signal handlers so Ctrl+C and kill/stop signals are forwarded to tshark.
+    # SIGINT: Ctrl+C in terminal
+    # SIGTERM: common "kill" / supervisor stop signal
+    old_sigint = signal.signal(signal.SIGINT, _shutdown)
+    old_sigterm = signal.signal(signal.SIGTERM, _shutdown)
 
     try:
-        proc = subprocess.run(tshark_cmd, check=False)
-        _vprint(args.verbose, f"tshark exit code: {proc.returncode}")
-        return proc.returncode
-    except FileNotFoundError:
-        print(
-            "ERROR: tshark not found on PATH. Install wireshark/tshark.",
-            file=sys.stderr,
-        )
-        return 127
+        try:
+            proc = subprocess.Popen(tshark_cmd)
+        except FileNotFoundError:
+            print(
+                "ERROR: tshark not found on PATH. Install wireshark/tshark.",
+                file=sys.stderr,
+            )
+            return 127
+
+        # Wait for tshark to finish normally (or via signals handled above).
+        while True:
+            rc = proc.poll()
+            if rc is not None:
+                _vprint(args.verbose, f"tshark exit code: {rc}")
+                return int(rc)
+            time.sleep(0.1)
+
+    finally:
+        # Restore prior handlers (important if this grows to run multiple commands).
+        signal.signal(signal.SIGINT, old_sigint)
+        signal.signal(signal.SIGTERM, old_sigterm)
 
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="protoview")
     sub = p.add_subparsers(dest="command", required=True)
 
-    cap = sub.add_parser(
-        "capture",
-        help="Capture TCP traffic on loopback into a pcap file."
-    )
+    cap = sub.add_parser("capture", help="Capture TCP traffic on loopback into a pcap file.")
     cap.add_argument(
         "--verbose",
         "-v",

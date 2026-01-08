@@ -35,3 +35,20 @@ The markdown generated above is used for visual display using **D3** or
 
 **TODO**
 
+
+## Execution example
+
+### Start a virtual environment
+
+```
+python3 -m venv venv
+source venv/bin/activate
+```
+
+
+
+
+
+
+
+

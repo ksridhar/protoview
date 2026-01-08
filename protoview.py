@@ -3,7 +3,7 @@
 protoview: capture network traffic into a pcap file (v1).
 
 Usage:
-  protoview capture [--output FILE] PORT [PORT ...]
+  protoview capture [--verbose] [--output FILE] PORT [PORT ...]
 """
 
 from __future__ import annotations
@@ -33,9 +33,13 @@ def _parse_port(s: str) -> int:
 
 
 def _build_bpf_filter(ports: List[int]) -> str:
-    # tcp and (port 5173 or port 8080 or ...)
     ors = " or ".join(f"port {p}" for p in ports)
     return f"tcp and ({ors})"
+
+
+def _vprint(verbose: bool, msg: str) -> None:
+    if verbose:
+        print(f"[protoview] {msg}", file=sys.stderr)
 
 
 def cmd_capture(args: argparse.Namespace) -> int:
@@ -48,29 +52,36 @@ def cmd_capture(args: argparse.Namespace) -> int:
 
     ports = args.ports
     if not ports:
-        # argparse enforces this, but keep it explicit.
         print("ERROR: at least one PORT is required.", file=sys.stderr)
         return 2
 
     bpf = _build_bpf_filter(ports)
     out = args.output
 
+    _vprint(args.verbose, f"ports          : {ports}")
+    _vprint(args.verbose, f"bpf filter     : {bpf}")
+    _vprint(args.verbose, f"output pcap    : {out}")
+    _vprint(args.verbose, "interface      : lo")
+    _vprint(args.verbose, "transport      : tcp")
+
     tshark_cmd = [
         "tshark",
-        "-i",
-        "lo",
-        "-f",
-        bpf,
-        "-w",
-        out,
+        "-i", "lo",
+        "-f", bpf,
+        "-w", out,
     ]
 
-    print("Running:", shlex.join(tshark_cmd), file=sys.stderr)
+    _vprint(args.verbose, f"exec            : {shlex.join(tshark_cmd)}")
+
     try:
         proc = subprocess.run(tshark_cmd, check=False)
+        _vprint(args.verbose, f"tshark exit code: {proc.returncode}")
         return proc.returncode
     except FileNotFoundError:
-        print("ERROR: tshark not found on PATH. Install wireshark/tshark.", file=sys.stderr)
+        print(
+            "ERROR: tshark not found on PATH. Install wireshark/tshark.",
+            file=sys.stderr,
+        )
         return 127
 
 
@@ -78,7 +89,16 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="protoview")
     sub = p.add_subparsers(dest="command", required=True)
 
-    cap = sub.add_parser("capture", help="Capture TCP traffic on loopback into a pcap file.")
+    cap = sub.add_parser(
+        "capture",
+        help="Capture TCP traffic on loopback into a pcap file."
+    )
+    cap.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Emit debug traces to stderr.",
+    )
     cap.add_argument(
         "--output",
         "-o",

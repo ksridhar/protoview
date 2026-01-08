@@ -99,3 +99,9 @@ id -nG
 ./protoview.py capture --verbose 5173 10002
 ```
 
+The real-world packaging situation on your machine: dumpcap is executable 
+only for the wireshark group, and your login session wasn’t actually in 
+that group. newgrp wireshark is a correct workaround; the long-term fix 
+is to make group membership effective at login (but that’s OS/admin 
+territory, not protoview code).
+

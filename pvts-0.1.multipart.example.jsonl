@@ -1,0 +1,223 @@
+{
+  "pvts": "0.1",
+  "type": "trace_start",
+  "trace_id": "pvts-multipart-001",
+  "ts": "2026-01-08T23:10:00.000Z",
+  "capture": {
+    "file": "example-multipart.pcapng",
+    "format": "pcapng",
+    "interface": "lo",
+    "filter": "tcp and (port 8080)"
+  },
+  "tool": {
+    "name": "protoview",
+    "version": "0.1.0"
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "event",
+  "trace_id": "pvts-multipart-001",
+  "id": "m010001",
+  "ts": "2026-01-08T23:10:00.100Z",
+  "seq": 0,
+  "kind": "http_request",
+  "summary": "GET /bundle",
+  "conn": {
+    "transport": "tcp",
+    "stream": 12,
+    "five_tuple": {
+      "src": {
+        "host": "127.0.0.1",
+        "port": 56111
+      },
+      "dst": {
+        "host": "127.0.0.1",
+        "port": 8080
+      }
+    }
+  },
+  "src": {
+    "host": "127.0.0.1",
+    "port": 56111,
+    "name": "Client"
+  },
+  "dst": {
+    "host": "127.0.0.1",
+    "port": 8080,
+    "name": "Server"
+  },
+  "proto": {
+    "http": {
+      "version": "1.1",
+      "headers": [
+        {
+          "name": "Host",
+          "value": "localhost:8080"
+        },
+        {
+          "name": "Accept",
+          "value": "multipart/mixed"
+        },
+        {
+          "name": "Connection",
+          "value": "keep-alive"
+        }
+      ],
+      "method": "GET",
+      "target": "/bundle"
+    }
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "event",
+  "trace_id": "pvts-multipart-001",
+  "id": "m010002",
+  "ts": "2026-01-08T23:10:00.180Z",
+  "seq": 1,
+  "kind": "http_response",
+  "summary": "200 multipart/mixed",
+  "conn": {
+    "transport": "tcp",
+    "stream": 12
+  },
+  "src": {
+    "host": "127.0.0.1",
+    "port": 8080,
+    "name": "Server"
+  },
+  "dst": {
+    "host": "127.0.0.1",
+    "port": 56111,
+    "name": "Client"
+  },
+  "links": {
+    "in_response_to": "m010001",
+    "root": "m010001"
+  },
+  "proto": {
+    "http": {
+      "version": "1.1",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "multipart/mixed; boundary=BOUNDARY-123"
+        },
+        {
+          "name": "Connection",
+          "value": "keep-alive"
+        }
+      ],
+      "status": 200,
+      "reason": "OK"
+    }
+  },
+  "payload": {
+    "mime": "multipart/mixed",
+    "encoding": "identity",
+    "data": "",
+    "truncated": false
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "event",
+  "trace_id": "pvts-multipart-001",
+  "id": "m010003",
+  "ts": "2026-01-08T23:10:00.220Z",
+  "seq": 2,
+  "kind": "multipart_part",
+  "summary": "part[0] application/json",
+  "conn": {
+    "transport": "tcp",
+    "stream": 12
+  },
+  "src": {
+    "host": "127.0.0.1",
+    "port": 8080,
+    "name": "Server"
+  },
+  "dst": {
+    "host": "127.0.0.1",
+    "port": 56111,
+    "name": "Client"
+  },
+  "links": {
+    "parent": "m010002",
+    "root": "m010001"
+  },
+  "proto": {
+    "multipart": {
+      "boundary": "BOUNDARY-123",
+      "part_index": 0,
+      "part_headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    }
+  },
+  "payload": {
+    "mime": "application/json",
+    "encoding": "identity",
+    "data": "{\"meta\":{\"bundle\":\"v1\",\"count\":1}}",
+    "truncated": false
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "event",
+  "trace_id": "pvts-multipart-001",
+  "id": "m010004",
+  "ts": "2026-01-08T23:10:00.260Z",
+  "seq": 3,
+  "kind": "multipart_part",
+  "summary": "part[1] text/plain",
+  "conn": {
+    "transport": "tcp",
+    "stream": 12
+  },
+  "src": {
+    "host": "127.0.0.1",
+    "port": 8080,
+    "name": "Server"
+  },
+  "dst": {
+    "host": "127.0.0.1",
+    "port": 56111,
+    "name": "Client"
+  },
+  "links": {
+    "parent": "m010002",
+    "root": "m010001"
+  },
+  "proto": {
+    "multipart": {
+      "boundary": "BOUNDARY-123",
+      "part_index": 1,
+      "part_headers": [
+        {
+          "name": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        }
+      ]
+    }
+  },
+  "payload": {
+    "mime": "text/plain; charset=utf-8",
+    "encoding": "identity",
+    "data": "Hello from part 2\\n",
+    "truncated": false
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "trace_end",
+  "trace_id": "pvts-multipart-001",
+  "ts": "2026-01-08T23:10:01.000Z",
+  "stats": {
+    "events": 4
+  }
+}

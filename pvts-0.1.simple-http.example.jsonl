@@ -1,0 +1,132 @@
+{
+  "pvts": "0.1",
+  "type": "trace_start",
+  "trace_id": "pvts-simple-001",
+  "ts": "2026-01-09T09:00:00.000Z",
+  "capture": {
+    "file": "simple-http.pcapng",
+    "format": "pcapng",
+    "interface": "lo",
+    "filter": "tcp and (port 8080)"
+  },
+  "tool": {
+    "name": "protoview",
+    "version": "0.1.0"
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "event",
+  "trace_id": "pvts-simple-001",
+  "id": "m000001",
+  "ts": "2026-01-09T09:00:00.120Z",
+  "seq": 0,
+  "kind": "http_request",
+  "summary": "GET /health",
+  "conn": {
+    "transport": "tcp",
+    "stream": 3,
+    "five_tuple": {
+      "src": {
+        "host": "127.0.0.1",
+        "port": 55432
+      },
+      "dst": {
+        "host": "127.0.0.1",
+        "port": 8080
+      }
+    }
+  },
+  "src": {
+    "host": "127.0.0.1",
+    "port": 55432,
+    "name": "Client"
+  },
+  "dst": {
+    "host": "127.0.0.1",
+    "port": 8080,
+    "name": "Server"
+  },
+  "proto": {
+    "http": {
+      "version": "1.1",
+      "headers": [
+        {
+          "name": "Host",
+          "value": "localhost:8080"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "Connection",
+          "value": "keep-alive"
+        }
+      ],
+      "method": "GET",
+      "target": "/health"
+    }
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "event",
+  "trace_id": "pvts-simple-001",
+  "id": "m000002",
+  "ts": "2026-01-09T09:00:00.145Z",
+  "seq": 1,
+  "kind": "http_response",
+  "summary": "200 application/json",
+  "conn": {
+    "transport": "tcp",
+    "stream": 3
+  },
+  "src": {
+    "host": "127.0.0.1",
+    "port": 8080,
+    "name": "Server"
+  },
+  "dst": {
+    "host": "127.0.0.1",
+    "port": 55432,
+    "name": "Client"
+  },
+  "links": {
+    "in_response_to": "m000001",
+    "root": "m000001"
+  },
+  "proto": {
+    "http": {
+      "version": "1.1",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Content-Length",
+          "value": "15"
+        }
+      ],
+      "status": 200,
+      "reason": "OK"
+    }
+  },
+  "payload": {
+    "mime": "application/json",
+    "encoding": "identity",
+    "data": "{\"status\":\"ok\"}",
+    "truncated": false,
+    "size_bytes": 15
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "trace_end",
+  "trace_id": "pvts-simple-001",
+  "ts": "2026-01-09T09:00:00.200Z",
+  "stats": {
+    "events": 2
+  }
+}

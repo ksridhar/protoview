@@ -121,6 +121,7 @@ In one sentence:
 
 > **PVTS is a structured, event-stream representation of observed protocol interactions, designed to bridge packet capture and narrative visualization without conflating capture, interpretation, or presentation.**
 
+---
 
 ### PVTS 0.1 JSON Schema
 
@@ -143,7 +144,46 @@ It is deliberately **small and extensible**:
 * **Comments**: use `$comment` + `description`. That’s the standards-compliant way.
 * **Extensibility**: PVTS 0.1 is intentionally minimal. PVTS 0.2 can add kinds (websocket, grpc, dns), and expand `conn` beyond TCP.
 
+---
+
 ### PVTS 0.1 JSONL file
+
+#### Simple Example
+
+Here is a **minimal, clean PVTS 0.1 example** for a **simple HTTP request + response** (no SSE, no multipart).
+
+This is the smallest useful unit that still demonstrates request/response correlation.
+
+[PVTS 0.1 SIMPLE HTTP Example](./pvts-0.1.simple-http.example.jsonl)
+
+### Why this example is important
+
+* Shows **ordering** via `seq`
+* Shows **correlation** via `links.in_response_to`
+* Uses **tcp.stream** as the transport anchor
+* Keeps payload simple and readable
+* Validates cleanly against the PVTS 0.1 schema
+
+This is the canonical “hello world” for PVTS.
+
+#### Multipart Example
+
+Here’s a **minimal PVTS 0.1 multipart example** as JSONL. It includes:
+
+* `trace_start`
+* one HTTP request
+* one HTTP response with `Content-Type: multipart/mixed; boundary=...`
+* two `multipart_part` sub-events, each linked to the response (parent) and request (root)
+* `trace_end`
+
+[PVTS 0.1 MULTIPART Example](./pvts-0.1.multipart.example.jsonl)
+
+* The **multipart response is one HTTP response** (`m010002`).
+* Each multipart part is modeled as a **child event** (`multipart_part`) linked via:
+
+  * `links.parent = m010002`
+  * `links.root = m010001`
+* The response payload body is empty here on purpose; the parts carry the actual content. That keeps the model clean and avoids duplication.
 
 #### SSE Example
 
@@ -155,7 +195,7 @@ This contains
 * two SSE events as separate JSONL records linked to the response (and root request)
 * `trace_end`
 
-[PVTS 0.1 SSE Example](./pvts-0.1.examples.jsonl)
+[PVTS 0.1 SSE Example](./pvts-0.1.sse.example.jsonl)
 
 * Every record includes `pvts: "0.1"`.
 * Each `event` has required: `trace_id`, `id`, `ts`, `kind`, `conn`, `src`, `dst`.
@@ -165,9 +205,4 @@ This contains
 * Links:
   * Response links to request using `links.in_response_to`.
   * SSE events link to the response using `links.parent`, and to the request with `links.root`.
-
-#### Multipart Example
-
-
-
 

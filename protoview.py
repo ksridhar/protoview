@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """
-protoview: capture network traffic into a capture file (v1).
+protoview: capture network traffic into a capture file/stream (v1).
 
-This version uses `dumpcap` for capture (Wireshark's capture engine) so you can
-often run without sudo, assuming your system is configured appropriately.
+This version uses `dumpcap` for capture (Wireshark's capture engine).
 
-Output format:
-- Default is pcapng (".pcapng"), which is what dumpcap writes by default.
+Output behavior:
+- By default, capture bytes are written to STDOUT.
+  That means you should redirect to a file, e.g.:
+      protoview capture 5173 10002 > capture.pcapng
+  or specify an output file:
+      protoview capture --output capture.pcapng 5173 10002
 
-Usage:
-  protoview capture [--verbose] [--output FILE] PORT [PORT ...]
+Notes:
+- `dumpcap` writes pcapng by default.
+- Verbose traces are written to STDERR.
 """
 
 from __future__ import annotations
@@ -20,14 +24,7 @@ import signal
 import subprocess
 import sys
 import time
-from datetime import datetime
 from typing import List, Optional
-
-
-def _default_capture_name() -> str:
-    # ISO-ish, filesystem-safe (no ':')
-    # We default to pcapng because dumpcap writes pcapng by default.
-    return datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".pcapng"
 
 
 def _parse_port(s: str) -> int:
@@ -59,15 +56,30 @@ def cmd_capture(args: argparse.Namespace) -> int:
         return 2
 
     bpf = _build_bpf_filter(ports)
-    out = args.output
+
+    # Default output is stdout. dumpcap uses '-' to mean stdout for -w.
+    out = args.output if args.output is not None else "-"
+    if out == "stdout":
+        # Allow a user-friendly spelling, but normalize to dumpcap's convention.
+        out = "-"
 
     _vprint(args.verbose, f"ports          : {ports}")
     _vprint(args.verbose, f"bpf filter     : {bpf}")
-    _vprint(args.verbose, f"output capture : {out}")
+    _vprint(args.verbose, f"output capture : {'STDOUT' if out == '-' else out}")
     _vprint(args.verbose, "interface      : lo")
     _vprint(args.verbose, "transport      : tcp")
     _vprint(args.verbose, "capturer       : dumpcap")
-    _vprint(args.verbose, "format         : pcapng (default)")
+    _vprint(args.verbose, "format         : pcapng (dumpcap default)")
+
+    if out == "-" and sys.stdout.isatty():
+        print(
+            "ERROR: Refusing to write binary capture data to an interactive terminal.\n"
+            "Redirect stdout to a file, e.g.:\n"
+            "  protoview capture 5173 10002 > capture.pcapng\n"
+            "or specify --output capture.pcapng",
+            file=sys.stderr,
+        )
+        return 2
 
     dumpcap_cmd = [
         "dumpcap",
@@ -80,7 +92,7 @@ def cmd_capture(args: argparse.Namespace) -> int:
     ]
 
     # Run dumpcap as a child process so we can forward Ctrl+C / SIGTERM to it.
-    # This helps ensure dumpcap closes the capture file cleanly (flush/finalize) on exit.
+    # This helps ensure dumpcap closes the capture stream/file cleanly (flush/finalize) on exit.
     _vprint(args.verbose, f"exec           : {shlex.join(dumpcap_cmd)}")
 
     proc: Optional[subprocess.Popen[bytes]] = None
@@ -105,7 +117,7 @@ def cmd_capture(args: argparse.Namespace) -> int:
         except ProcessLookupError:
             return
 
-        # Give dumpcap time to close the capture file properly.
+        # Give dumpcap time to close the capture stream/file properly.
         try:
             proc.wait(timeout=3.0)
             return
@@ -143,6 +155,14 @@ def cmd_capture(args: argparse.Namespace) -> int:
                 file=sys.stderr,
             )
             return 127
+        except PermissionError as e:
+            print(
+                f"ERROR: cannot execute dumpcap ({e}).\n"
+                "On many systems, dumpcap is executable only by the 'wireshark' group.\n"
+                "Check: ls -l /usr/bin/dumpcap ; id -nG",
+                file=sys.stderr,
+            )
+            return 126
 
         # Wait for dumpcap to finish normally (or via signals handled above).
         while True:
@@ -171,7 +191,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="protoview")
     sub = p.add_subparsers(dest="command", required=True)
 
-    cap = sub.add_parser("capture", help="Capture TCP traffic on loopback into a pcapng file.")
+    cap = sub.add_parser("capture", help="Capture TCP traffic on loopback (pcapng by default).")
     cap.add_argument(
         "--verbose",
         "-v",
@@ -181,8 +201,11 @@ def build_parser() -> argparse.ArgumentParser:
     cap.add_argument(
         "--output",
         "-o",
-        default=_default_capture_name(),
-        help="Output capture file (default: YYYY-MM-DD-HH-MM-SS.pcapng).",
+        default="-",
+        help=(
+            "Output capture destination. Use '-' for stdout (default). "
+            "Example: --output capture.pcapng"
+        ),
     )
     cap.add_argument(
         "ports",

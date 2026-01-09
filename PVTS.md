@@ -1,6 +1,6 @@
-## ProtoView Trace Stream (PVTS)
+# ProtoView Trace Stream (PVTS)
 
-### Description
+## Description
 
 **ProtoView Trace Stream (PVTS)** is a **canonical, event-oriented JSON Lines (JSONL) format** for representing **observed protocol interactions** reconstructed from packet captures (pcap/pcapng).
 
@@ -12,11 +12,11 @@ PVTS is **not a packet format**, **not a logging format**, and **not an API desc
 
 ---
 
-### Objectives
+## Objectives
 
 PVTS is designed with the following explicit objectives:
 
-#### 1. Establish a single canonical intermediate format
+### 1. Establish a single canonical intermediate format
 
 PVTS serves as the **single source of truth** from which multiple representations can be generated, including:
 
@@ -27,17 +27,13 @@ PVTS serves as the **single source of truth** from which multiple representation
 
 By centralizing interpretation into PVTS, all downstream renderers remain simple, deterministic transformations.
 
----
-
-#### 2. Preserve wire-level reality while enabling semantic reconstruction
+### 2. Preserve wire-level reality while enabling semantic reconstruction
 
 PVTS retains enough transport-level context (for example, TCP stream identifiers and directionality) to remain **auditably grounded in the packet capture**, while also recording **derived semantic relationships** (such as request–response pairing or SSE sub-events).
 
 All higher-level links in PVTS are **explicitly marked as derived**, not claimed as wire-level truth.
 
----
-
-#### 3. Support temporal and narrative understanding
+### 3. Support temporal and narrative understanding
 
 PVTS is inherently:
 
@@ -53,9 +49,7 @@ This makes it suitable for:
 
 PVTS favors *narrative clarity* over exhaustive protocol detail.
 
----
-
-#### 4. Remain protocol-aware but transport-agnostic
+### 4. Remain protocol-aware but transport-agnostic
 
 PVTS:
 
@@ -65,9 +59,7 @@ PVTS:
 
 This allows PVTS to grow beyond HTTP without redesigning the core format.
 
----
-
-#### 5. Enable correlation without requiring instrumentation
+### 5. Enable correlation without requiring instrumentation
 
 PVTS does **not** depend on:
 
@@ -83,9 +75,7 @@ Correlation is achieved using:
 
 Optional enrichment (such as trace headers) may be included when present, but is never required.
 
----
-
-#### 6. Be friendly to both humans and machines
+### 6. Be friendly to both humans and machines
 
 PVTS is intentionally:
 
@@ -102,7 +92,7 @@ It is designed so that:
 
 ---
 
-### Non-Goals
+## Non-Goals
 
 PVTS explicitly does **not** aim to:
 
@@ -115,7 +105,7 @@ Those problems are intentionally left to other layers and tools.
 
 ---
 
-### Positioning Summary
+## Positioning Summary
 
 In one sentence:
 
@@ -123,7 +113,7 @@ In one sentence:
 
 ---
 
-### PVTS 0.1 JSON Schema
+## PVTS 0.1 JSON Schema
 
 Below is a **PVTS 0.1 JSON Schema** for a single line (record). It covers:
 
@@ -138,7 +128,7 @@ It is deliberately **small and extensible**:
 
 [PVTS 0.1 Schema](./pvts-0.1.schema.json)
 
-### Notes you should adopt as policy (not code)
+## Notes you should adopt as policy (not code)
 
 * **JSONL validation**: validate each line against this schema.
 * **Comments**: use `$comment` + `description`. That’s the standards-compliant way.
@@ -146,9 +136,9 @@ It is deliberately **small and extensible**:
 
 ---
 
-### PVTS 0.1 JSONL file
+## PVTS 0.1 JSONL examples
 
-#### Simple Example
+### Simple Example
 
 Here is a **minimal, clean PVTS 0.1 example** for a **simple HTTP request + response** (no SSE, no multipart).
 
@@ -156,7 +146,7 @@ This is the smallest useful unit that still demonstrates request/response correl
 
 [PVTS 0.1 SIMPLE HTTP Example](./pvts-0.1.simple-http.example.jsonl)
 
-### Why this example is important
+## Why this example is important
 
 * Shows **ordering** via `seq`
 * Shows **correlation** via `links.in_response_to`
@@ -166,7 +156,7 @@ This is the smallest useful unit that still demonstrates request/response correl
 
 This is the canonical “hello world” for PVTS.
 
-#### Multipart Example
+### Multipart Example
 
 Here’s a **minimal PVTS 0.1 multipart example** as JSONL. It includes:
 
@@ -185,7 +175,7 @@ Here’s a **minimal PVTS 0.1 multipart example** as JSONL. It includes:
   * `links.root = m010001`
 * The response payload body is empty here on purpose; the parts carry the actual content. That keeps the model clean and avoids duplication.
 
-#### SSE Example
+### SSE Example
 
 This contains
 
@@ -205,4 +195,226 @@ This contains
 * Links:
   * Response links to request using `links.in_response_to`.
   * SSE events link to the response using `links.parent`, and to the request with `links.root`.
+
+---
+
+## PVTS Indexing Logic
+
+### Goal
+
+From PVTS JSONL (events), produce a **sequence index**: one line per “message” that looks like a sequence diagram transcript and can link to details (by `id`).
+
+The sequence index is not “truth”; it’s a **view** over PVTS.
+
+---
+
+### Step 0: Define what counts as a “sequence row”
+
+For PVTS 0.1, treat these `kind` values as sequence rows:
+
+* `http_request`
+* `http_response`
+* `sse_event`
+* `multipart_part`
+
+Later you can add kinds without changing the pipeline.
+
+---
+
+### Step 1: Read PVTS JSONL line-by-line
+
+For each line:
+
+* parse JSON
+* ignore records where `type != "event"`
+* keep only events with `kind` in the allowed list
+
+Rationale: metadata lines shouldn’t pollute the sequence.
+
+---
+
+### Step 2: Choose ordering
+
+Prefer stable ordering in this priority:
+
+1. if `seq` exists, sort by `seq` ascending
+2. else sort by `ts` ascending
+3. tie-breaker: original file line order
+
+Why:
+
+* `seq` is the analyzer’s monotonic index (best)
+* timestamps can collide or be too coarse
+* file order is a safe final tie-breaker
+
+---
+
+### Step 3: Derive participants for each row
+
+For each event, compute the “from → to” fields:
+
+* `from = src.name if present else "{src.host}:{src.port}"`
+* `to   = dst.name if present else "{dst.host}:{dst.port}"`
+
+This is what creates lanes in Mermaid/D3 later too.
+
+---
+
+### Step 4: Derive a concise label (the human-facing part)
+
+Use this decision tree (PVTS-friendly, renderer-stable):
+
+#### If `summary` exists and is non-empty:
+
+* use it verbatim as the label
+
+Otherwise derive from protocol fields:
+
+#### For `http_request`
+
+* label = `"{method} {target}"`
+
+  * from `proto.http.method` and `proto.http.target`
+
+#### For `http_response`
+
+* label = `"{status} {content_type_short}"`
+
+  * status from `proto.http.status`
+  * content_type_short from first `Content-Type` header if present, else `"(no content-type)"`
+
+#### For `sse_event`
+
+* label = `"SSE {event or 'message'}"`
+
+  * from `proto.sse.event` if present
+
+#### For `multipart_part`
+
+* label = `"part[{part_index}] {content_type_short}"`
+
+  * from `proto.multipart.part_index` and `proto.multipart.part_headers`
+
+Keep it short. The details section carries the full payload.
+
+---
+
+### Step 5: Include linkable ID token
+
+Each sequence row must include the PVTS event `id` as a plain word token (e.g., `m000123`).
+
+This enables:
+
+* Vim search/jump
+* Markdown anchors
+* ctags (optional)
+
+Do not prefix it with `#` or punctuation if you want Vim word-jumps to behave well.
+
+---
+
+### Step 6: Produce the final sequence index line format
+
+Pick one stable line grammar and never change it lightly.
+
+A good minimal grammar:
+
+```
+{nn} {id} {from} -> {to}  {label}
+```
+
+Where:
+
+* `{nn}` is the row number in the sequence index (01, 02, …), not necessarily the same as `seq`
+* `{id}` is the PVTS event id
+* `{from}`, `{to}` are participants
+* `{label}` is from Step 4
+
+Example:
+
+```
+01 m000001 Client -> Server  GET /health
+02 m000002 Server -> Client  200 application/json
+```
+
+For SSE:
+
+```
+03 m000003 Server -> Client  SSE surfaceUpdate
+```
+
+For multipart:
+
+```
+04 m010003 Server -> Client  part[0] application/json
+```
+
+---
+
+### Step 7: (Optional) show hierarchy without breaking the grammar
+
+If you want “close to sequence diagram” *and* want to show parent/child:
+
+Use indentation only for events that have `links.parent`, but still keep the same tokens:
+
+* parentless events: no indent
+* child events: indent by two spaces (or a single tab)
+
+Example:
+
+```
+01 m000001 Client -> Server  GET /events
+02 m000002 Server -> Client  200 text/event-stream
+  03 m000003 Server -> Client  SSE surfaceUpdate
+  04 m000004 Server -> Client  SSE beginRendering
+```
+
+This is readable and machine-parseable.
+
+---
+
+### Step 8: Validate that every sequence row can jump to details
+
+Your Markdown details section should have headings like:
+
+* `## m000001`
+* `## m000002`
+
+So the sequence line’s `{id}` always corresponds to a definition anchor.
+
+That’s the “ctags-like” property.
+
+---
+
+### Step 9: Decide what you will NOT include in sequence lines
+
+Be strict:
+
+Do not include in the sequence index:
+
+* headers
+* bodies
+* long URLs
+* multi-line text
+
+Otherwise the index becomes unusable.
+
+---
+
+### Step 10: Make it future-proof
+
+This logic remains stable if later you add:
+
+* WebSockets: new `kind`, new label derivation
+* HTTP/2: still `http_request`/`http_response`, with different correlation under the hood
+* “agents” messages: new `kind`
+
+Renderers don’t change; they follow the same steps.
+
+---
+
+#### Summary of the algorithm in one sentence
+
+Parse PVTS events → order them (`seq`/`ts`) → format each as `{id} src→dst label` → optionally indent children using `links.parent` → emit as a stable, scan-friendly index that links to per-event detail sections.
+
 

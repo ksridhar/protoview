@@ -18,18 +18,22 @@ Here messages that are sent and received from a set of servers (currently
 HTTP) are captured an stored in a file. **tshark** is currently to be used
 for this process.
 
-### list
+### list-events
 
-Here the messages stored in the capture phase are presented in a markdown
-format. This makes it easy to 
+Here the messages stored in the capture phase are presented in [PVTS](./PVTS.md) 
+format. 
+
+### render
+
+#### Markdown
+
+This makes it easy to 
 - view
 - search (grep, etc..)
 - traverse (using ctags)
 
-### display
-
-The markdown generated above is used for visual display using **D3** or 
-**mermaid**.
+#### D3
+#### mermaid
 
 ## The implementation
 
@@ -38,4 +42,10 @@ The markdown generated above is used for visual display using **D3** or
 ## Running the program
 
 [See RUN.md](./RUN.md)
+
+## resources
+
+- <https://github.com/PiRogueToolSuite/pcapng-utils>
+- <https://pts-project.org/>
+- <https://github.com/gaainf/pcaper>
 

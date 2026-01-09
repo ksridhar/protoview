@@ -1,0 +1,352 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://protoview.dev/schemas/pvts-0.1-line.schema.json",
+  "title": "ProtoView Trace Stream (PVTS) 0.1 - JSONL line schema",
+  "type": "object",
+  "$comment": "This schema validates ONE JSONL record (one line) of PVTS. A PVTS file is a stream of such records.",
+  "oneOf": [
+    { "$ref": "#/$defs/traceStart" },
+    { "$ref": "#/$defs/event" },
+    { "$ref": "#/$defs/traceEnd" }
+  ],
+  "$defs": {
+    "pvtsVersion": {
+      "type": "string",
+      "const": "0.1",
+      "description": "PVTS format version for this record."
+    },
+
+    "isoTimestamp": {
+      "type": "string",
+      "description": "Timestamp in RFC 3339 / ISO 8601 format (e.g., 2026-01-08T22:27:52.123Z).",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+
+    "id": {
+      "type": "string",
+      "description": "Record identifier unique within a trace. Suggested form: m000001, m000002, ...",
+      "pattern": "^[A-Za-z][A-Za-z0-9_\\-]*$"
+    },
+
+    "traceId": {
+      "type": "string",
+      "description": "Identifier that ties all PVTS records in a file/stream together.",
+      "pattern": "^[A-Za-z0-9_\\-:.]+$"
+    },
+
+    "endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "port"],
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "Host/IP as observed (e.g., 127.0.0.1)."
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "TCP/UDP port."
+        },
+        "name": {
+          "type": "string",
+          "description": "Optional friendly participant label (e.g., Browser, ViteDevServer, Agent)."
+        }
+      }
+    },
+
+    "connection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transport", "stream"],
+      "properties": {
+        "transport": {
+          "type": "string",
+          "enum": ["tcp"],
+          "description": "Transport protocol. PVTS 0.1 focuses on TCP."
+        },
+        "stream": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "A stream identifier (e.g., Wireshark/tshark tcp.stream)."
+        },
+        "five_tuple": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["src", "dst"],
+          "properties": {
+            "src": { "$ref": "#/$defs/endpoint" },
+            "dst": { "$ref": "#/$defs/endpoint" }
+          },
+          "description": "Optional original 5-tuple endpoints for auditing/debugging."
+        }
+      }
+    },
+
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "in_response_to": {
+          "$ref": "#/$defs/id",
+          "description": "For a response: points to the request event id it answers. Derived by the analyzer."
+        },
+        "parent": {
+          "$ref": "#/$defs/id",
+          "description": "For sub-events (SSE, multipart parts): points to the parent event id."
+        },
+        "root": {
+          "$ref": "#/$defs/id",
+          "description": "Optional: points to the root event id of a group (often the HTTP request)."
+        }
+      }
+    },
+
+    "headers": {
+      "type": "array",
+      "description": "HTTP headers as an ordered list to preserve duplicates and original order.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value"],
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": "string" }
+        }
+      }
+    },
+
+    "payload": {
+      "type": "object",
+      "$comment": "Payload captures body content in a renderer-friendly way. Raw fidelity is optional and may be lossy.",
+      "additionalProperties": false,
+      "properties": {
+        "mime": {
+          "type": "string",
+          "description": "Media type if known (e.g., application/json, text/event-stream)."
+        },
+        "encoding": {
+          "type": "string",
+          "enum": ["identity", "base64", "gzip", "br", "deflate", "unknown"],
+          "description": "How 'data' is encoded, if applicable."
+        },
+        "data": {
+          "type": "string",
+          "description": "Body data. May be truncated. If binary, use base64 and set encoding=base64."
+        },
+        "truncated": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the payload was truncated by the analyzer."
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Observed size in bytes if known."
+        }
+      }
+    },
+
+    "protoHttp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "headers"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "HTTP version string (e.g., 1.1, 2)."
+        },
+        "headers": { "$ref": "#/$defs/headers" },
+
+        "method": {
+          "type": "string",
+          "description": "For requests: HTTP method (GET, POST, ...)."
+        },
+        "target": {
+          "type": "string",
+          "description": "For requests: request target (path + query)."
+        },
+
+        "status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599,
+          "description": "For responses: HTTP status code."
+        },
+        "reason": {
+          "type": "string",
+          "description": "For responses: reason phrase if present."
+        }
+      }
+    },
+
+    "protoSse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event": { "type": "string", "description": "SSE 'event:' field if present." },
+        "id": { "type": "string", "description": "SSE 'id:' field if present." },
+        "retry_ms": { "type": "integer", "minimum": 0, "description": "SSE 'retry:' if present, in ms." }
+      }
+    },
+
+    "protoMultipart": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "boundary": { "type": "string", "description": "Multipart boundary token if known." },
+        "part_index": { "type": "integer", "minimum": 0, "description": "0-based index of the part within the multipart body." },
+        "part_headers": { "$ref": "#/$defs/headers" }
+      }
+    },
+
+    "traceStart": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pvts", "type", "trace_id", "ts"],
+      "properties": {
+        "pvts": { "$ref": "#/$defs/pvtsVersion" },
+        "type": {
+          "type": "string",
+          "const": "trace_start"
+        },
+        "trace_id": { "$ref": "#/$defs/traceId" },
+        "ts": { "$ref": "#/$defs/isoTimestamp" },
+
+        "capture": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "file": { "type": "string", "description": "Capture filename if known." },
+            "format": { "type": "string", "enum": ["pcapng", "pcap"], "description": "Capture container format." },
+            "interface": { "type": "string", "description": "Capture interface (e.g., lo)." },
+            "filter": { "type": "string", "description": "Capture filter (e.g., tcp and (port ...))." }
+          }
+        },
+        "tool": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string", "description": "Tool name (e.g., protoview)." },
+            "version": { "type": "string", "description": "Tool version." }
+          }
+        }
+      }
+    },
+
+    "traceEnd": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pvts", "type", "trace_id", "ts"],
+      "properties": {
+        "pvts": { "$ref": "#/$defs/pvtsVersion" },
+        "type": {
+          "type": "string",
+          "const": "trace_end"
+        },
+        "trace_id": { "$ref": "#/$defs/traceId" },
+        "ts": { "$ref": "#/$defs/isoTimestamp" },
+        "stats": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "events": { "type": "integer", "minimum": 0, "description": "Number of event records emitted." }
+          }
+        }
+      }
+    },
+
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pvts", "type", "trace_id", "id", "ts", "kind", "conn", "src", "dst"],
+      "properties": {
+        "pvts": { "$ref": "#/$defs/pvtsVersion" },
+        "type": {
+          "type": "string",
+          "const": "event"
+        },
+        "trace_id": { "$ref": "#/$defs/traceId" },
+
+        "id": { "$ref": "#/$defs/id" },
+        "ts": { "$ref": "#/$defs/isoTimestamp" },
+
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Optional monotonic sequence number assigned by the analyzer (useful for stable ordering)."
+        },
+
+        "kind": {
+          "type": "string",
+          "enum": ["http_request", "http_response", "sse_event", "multipart_part"],
+          "description": "Event kind. PVTS 0.1 focuses on HTTP + SSE + multipart."
+        },
+
+        "summary": {
+          "type": "string",
+          "description": "Short human label used in sequence views (not authoritative)."
+        },
+
+        "conn": { "$ref": "#/$defs/connection" },
+        "src": { "$ref": "#/$defs/endpoint" },
+        "dst": { "$ref": "#/$defs/endpoint" },
+
+        "links": { "$ref": "#/$defs/links" },
+
+        "proto": {
+          "type": "object",
+          "$comment": "Protocol-specific structured fields. Exact object depends on 'kind'.",
+          "additionalProperties": false,
+          "properties": {
+            "http": { "$ref": "#/$defs/protoHttp" },
+            "sse": { "$ref": "#/$defs/protoSse" },
+            "multipart": { "$ref": "#/$defs/protoMultipart" }
+          }
+        },
+
+        "payload": { "$ref": "#/$defs/payload" },
+
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Optional free-form tags for filtering/rendering."
+        }
+      },
+
+      "allOf": [
+        {
+          "$comment": "If kind is http_request, proto.http.method and proto.http.target should be present.",
+          "if": { "properties": { "kind": { "const": "http_request" } } },
+          "then": {
+            "required": ["proto"],
+            "properties": {
+              "proto": {
+                "required": ["http"],
+                "properties": {
+                  "http": { "required": ["method", "target"] }
+                }
+              }
+            }
+          }
+        },
+        {
+          "$comment": "If kind is http_response, proto.http.status should be present.",
+          "if": { "properties": { "kind": { "const": "http_response" } } },
+          "then": {
+            "required": ["proto"],
+            "properties": {
+              "proto": {
+                "required": ["http"],
+                "properties": {
+                  "http": { "required": ["status"] }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

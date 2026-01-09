@@ -1,0 +1,230 @@
+{
+  "pvts": "0.1",
+  "type": "trace_start",
+  "trace_id": "pvts-example-001",
+  "ts": "2026-01-08T22:27:52.000Z",
+  "capture": {
+    "file": "example.pcapng",
+    "format": "pcapng",
+    "interface": "lo",
+    "filter": "tcp and (port 5173 or port 10002)"
+  },
+  "tool": {
+    "name": "protoview",
+    "version": "0.1.0"
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "event",
+  "trace_id": "pvts-example-001",
+  "id": "m000001",
+  "ts": "2026-01-08T22:27:52.100Z",
+  "seq": 0,
+  "kind": "http_request",
+  "summary": "GET /events (SSE)",
+  "conn": {
+    "transport": "tcp",
+    "stream": 7,
+    "five_tuple": {
+      "src": {
+        "host": "127.0.0.1",
+        "port": 55692
+      },
+      "dst": {
+        "host": "127.0.0.1",
+        "port": 5173
+      }
+    }
+  },
+  "src": {
+    "host": "127.0.0.1",
+    "port": 55692,
+    "name": "Browser"
+  },
+  "dst": {
+    "host": "127.0.0.1",
+    "port": 5173,
+    "name": "Client"
+  },
+  "proto": {
+    "http": {
+      "version": "1.1",
+      "headers": [
+        {
+          "name": "Host",
+          "value": "localhost:5173"
+        },
+        {
+          "name": "Accept",
+          "value": "text/event-stream"
+        },
+        {
+          "name": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "name": "Connection",
+          "value": "keep-alive"
+        }
+      ],
+      "method": "GET",
+      "target": "/events"
+    }
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "event",
+  "trace_id": "pvts-example-001",
+  "id": "m000002",
+  "ts": "2026-01-08T22:27:52.180Z",
+  "seq": 1,
+  "kind": "http_response",
+  "summary": "200 text/event-stream",
+  "conn": {
+    "transport": "tcp",
+    "stream": 7,
+    "five_tuple": {
+      "src": {
+        "host": "127.0.0.1",
+        "port": 5173
+      },
+      "dst": {
+        "host": "127.0.0.1",
+        "port": 55692
+      }
+    }
+  },
+  "src": {
+    "host": "127.0.0.1",
+    "port": 5173,
+    "name": "Client"
+  },
+  "dst": {
+    "host": "127.0.0.1",
+    "port": 55692,
+    "name": "Browser"
+  },
+  "links": {
+    "in_response_to": "m000001",
+    "root": "m000001"
+  },
+  "proto": {
+    "http": {
+      "version": "1.1",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "text/event-stream"
+        },
+        {
+          "name": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "name": "Connection",
+          "value": "keep-alive"
+        }
+      ],
+      "status": 200,
+      "reason": "OK"
+    }
+  },
+  "payload": {
+    "mime": "text/event-stream",
+    "encoding": "identity",
+    "data": "",
+    "truncated": false,
+    "size_bytes": 0
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "event",
+  "trace_id": "pvts-example-001",
+  "id": "m000003",
+  "ts": "2026-01-08T22:27:53.000Z",
+  "seq": 2,
+  "kind": "sse_event",
+  "summary": "data: {\"surfaceUpdate\":...}",
+  "conn": {
+    "transport": "tcp",
+    "stream": 7
+  },
+  "src": {
+    "host": "127.0.0.1",
+    "port": 5173,
+    "name": "Client"
+  },
+  "dst": {
+    "host": "127.0.0.1",
+    "port": 55692,
+    "name": "Browser"
+  },
+  "links": {
+    "parent": "m000002",
+    "root": "m000001"
+  },
+  "proto": {
+    "sse": {
+      "event": "surfaceUpdate",
+      "id": "1"
+    }
+  },
+  "payload": {
+    "mime": "application/json",
+    "encoding": "identity",
+    "data": "{\"surfaceUpdate\":{\"components\":[{\"id\":\"root\",\"component\":{\"Column\":{\"children\":{\"explicitList\":[\"profile_card\"]}}}}]}}",
+    "truncated": false
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "event",
+  "trace_id": "pvts-example-001",
+  "id": "m000004",
+  "ts": "2026-01-08T22:27:54.000Z",
+  "seq": 3,
+  "kind": "sse_event",
+  "summary": "data: {\"beginRendering\":...}",
+  "conn": {
+    "transport": "tcp",
+    "stream": 7
+  },
+  "src": {
+    "host": "127.0.0.1",
+    "port": 5173,
+    "name": "Client"
+  },
+  "dst": {
+    "host": "127.0.0.1",
+    "port": 55692,
+    "name": "Browser"
+  },
+  "links": {
+    "parent": "m000002",
+    "root": "m000001"
+  },
+  "proto": {
+    "sse": {
+      "event": "beginRendering",
+      "id": "2"
+    }
+  },
+  "payload": {
+    "mime": "application/json",
+    "encoding": "identity",
+    "data": "{\"beginRendering\":{\"root\":\"root\"}}",
+    "truncated": false
+  }
+}
+{
+  "pvts": "0.1",
+  "type": "trace_end",
+  "trace_id": "pvts-example-001",
+  "ts": "2026-01-08T22:27:55.000Z",
+  "stats": {
+    "events": 4
+  }
+}

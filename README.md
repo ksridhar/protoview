@@ -49,3 +49,8 @@ This makes it easy to
 - <https://pts-project.org/>
 - <https://github.com/gaainf/pcaper>
 
+## Other commands
+
+```
+tshark -r 10002.pcapng -Y "http" -T json   -e http.request.method -e http.request.uri -e http.response.code -e http.file_data 
+```

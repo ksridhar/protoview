@@ -15,13 +15,13 @@ to read, search, traverse, parse and display.
 ### capture 
 
 Here messages that are sent and received from a set of servers (currently
-HTTP) are captured an stored in a file. **tshark** is currently to be used
+HTTP) are captured an stored in a file. **dumpcap** is currently to be used
 for this process.
 
 ### list-events
 
-Here the messages stored in the capture phase are presented in [PVTS](./PVTS.md) 
-format. 
+Here the messages stored in the capture phase are presented in jsonl format
+using **tshark**.
 
 ### render
 
@@ -38,10 +38,6 @@ This makes it easy to
 ## The implementation
 
 **TODO**
-
-## Running the program
-
-[See RUN.md](./RUN.md)
 
 ## resources
 

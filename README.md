@@ -48,5 +48,12 @@ This makes it easy to
 ## Other commands
 
 ```
-tshark -r 10002.pcapng -Y "http" -T json   -e http.request.method -e http.request.uri -e http.response.code -e http.file_data 
+sudo usermod -a -G wireshark {your username}
+newgrp wireshark
+bash
+dumpcap -i lo "tcp port 10002" -w 10002.run.05.pcapng
+```
+
+```
+./pvinspect.sh 10002.run.05.pcapng | jq '.' > 10002.run.05.inspect.jsonl
 ```

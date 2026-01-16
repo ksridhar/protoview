@@ -94,7 +94,7 @@ PCAP_BAREPATHNAME=${PCAP_DIRNAME}/${PCAP_BARENAME}
 # -T ek: emit JSONL/ndjson (ElasticSearch bulk format)
 # -e: emit selected HTTP fields
 
-if ((1))
+if ((0))
 then
   # var.1
 output_filepath=${PCAP_BAREPATHNAME}.var.01.jsonl
@@ -122,7 +122,7 @@ jq '.' > $output_filepath
 echo "dumped $output_filepath" >&2
 fi
 
-if ((1))
+if ((0))
 then
   # var.2
 output_filepath=${PCAP_BAREPATHNAME}.var.02.jsonl
@@ -150,7 +150,7 @@ jq '.' > $output_filepath
 echo "dumped $output_filepath" >&2
 fi
 
-if ((1))
+if ((0))
 then
   # var.3
 output_filepath=${PCAP_BAREPATHNAME}.var.03.jsonl
@@ -168,7 +168,7 @@ jq '.' > $output_filepath
 echo "dumped $output_filepath" >&2
 fi
 
-if ((1))
+if ((0))
 then
   # var.4
 output_filepath=${PCAP_BAREPATHNAME}.var.04.jsonl
@@ -188,7 +188,7 @@ jq '.' > $output_filepath
 echo "dumped $output_filepath" >&2
 fi
 
-if ((1))
+if ((0))
 then
   # var.5
 output_filepath=${PCAP_BAREPATHNAME}.var.05.jsonl
@@ -215,9 +215,9 @@ fi
 if ((1))
 then
   # var.6
-output_filepath=${PCAP_BAREPATHNAME}.var.06.jsonl
-rm -f $output_filepath
-set -x
+#output_filepath=${PCAP_BAREPATHNAME}.var.06.jsonl
+#rm -f $output_filepath
+#set -x
 exec tshark \
   -r "$PCAP_FILE" \
   -2 \
@@ -269,8 +269,8 @@ exec tshark \
   -e http.user_agent \
   -T ek \
   -- |\
-jq '.' > $output_filepath
-echo "dumped $output_filepath" >&2
+jq '.' # > $output_filepath
+#echo "dumped $output_filepath" >&2
 fi
 
 # NOTES:

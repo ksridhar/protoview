@@ -45,15 +45,26 @@ This makes it easy to
 - <https://pts-project.org/>
 - <https://github.com/gaainf/pcaper>
 
-## Other commands
+## How to Run
 
-```
-sudo usermod -a -G wireshark {your username}
-newgrp wireshark
-bash
-dumpcap -i lo "tcp port 10002" -w 10002.run.05.pcapng
-```
+- Run these commands to capture messages on port 10002 on the local machine
+  ```
+  sudo usermod -a -G wireshark {your username}
+  newgrp wireshark
+  bash
+  ./pvcapture.sh 10002 > 10002.pcapng
+  ```
+- Run the applications
+- Stop the applications
+- Stop the pvcapture (CTRL+C)
+- Dump HTTP messages pertaining to port 10002
+  ```
+  ./pvinspect -p 10002 10002.pcapng > 10002.jsonl
+  ```
+- Create separate json files for request and responses
+  ```
+  ./pvrrdump -P xxx. 10002.jsonl
+  ```
+  Will create files with the prefix 'xxx.'
 
-```
-./pvinspect.sh 10002.run.05.pcapng | jq '.' > 10002.run.05.inspect.jsonl
-```
+

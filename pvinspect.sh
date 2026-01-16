@@ -5,7 +5,7 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: protoview-analyze.sh [OPTIONS] <capture.pcapng>
+Usage: pvinspect.sh [OPTIONS] <capture.pcapng>
 
 Parses HTTP from a pcapng file and emits JSONL/ndjson to stdout.
 
@@ -73,7 +73,7 @@ if [ ! -f "$PCAP_FILE" ]; then
   exit 1
 fi
 
-TMP_FILE="$(mktemp -t protoview-analyze.XXXXXX)"
+TMP_FILE="$(mktemp -t pvinspect.XXXXXX)"
 trap 'rm -f "$TMP_FILE"' EXIT
 
 
@@ -273,3 +273,8 @@ jq '.' > $output_filepath
 echo "dumped $output_filepath" >&2
 fi
 
+# NOTES:
+#
+# - request.http_response_in == response.frame_number and
+# - response.http_request_in = request.frame_number 
+#

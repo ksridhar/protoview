@@ -4,7 +4,7 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: pvcap.sh <port> [port...]
+Usage: pvcapture.sh <port> [port...]
 
 Capture TCP traffic for one or more ports using dumpcap.
 

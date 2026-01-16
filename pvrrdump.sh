@@ -95,6 +95,7 @@ jq -cr '
         | "rsp.\($fn).req.\(.layers.http_request_in[0]).json"
 
     else
+        # empty
         "unknown.\($fn).json"
     end
 
@@ -104,6 +105,4 @@ jq -cr '
 while IFS=$'\t' read -r fname json; do
     printf '%s\n' "$json" > "${PREFIX}${fname}"
 done
-
-
 

@@ -1,7 +1,7 @@
-all: xxx.pvrrdisp_map.csv
+all: xxx.pvrrenumi_map.csv
 
-xxx.pvrrdisp_map.csv: xxx.pvrrdump_map.csv
-	./pvrrdisp.sh $< > $@
+xxx.pvrrenumi_map.csv: xxx.pvrrdump_map.csv
+	./pvrenumi.sh $< > $@
 
 xxx.pvrrdump_map.csv: 10002.run.05.jsonl
 	./pvrrdump.sh -P xxx 10002.run.05.jsonl > $@
@@ -15,7 +15,7 @@ xxx.pvrrdump_map.csv: 10002.run.05.jsonl
 .PHONY: clean 
 
 clean:
-	rm -rfv xxx.pvrrdisp_map.csv
+	rm -rfv xxx.pvrrenumi_map.csv
 	rm -rfv xxx.pvrrdump_map.csv
 	rm -rfv xxx.*.json
 	rm -rfv 10002.run.05.jsonl

@@ -37,9 +37,14 @@
   ```
 - Create separate json files for request and responses
   ```
-  ./pvrrdump -P xxx. 10002.jsonl
+  ./pvrrdump -P xxx. 10002.jsonl > 10002.rr.csv
   ```
-  Will create files with the prefix 'xxx.'
+  Will create files with the prefix 'xxx.' and store the
+  request,response file table in 10002.rr.csv
+- Enumerate the interactions using pvrrenumi.sh
+  ```
+  ./pvrrenumi 10002.rr.csv > 10002.enumi.csv
+  ```
 - There is a sample Makefile that can be looked at to 
   run commands starting from pvinspect onwards.
 

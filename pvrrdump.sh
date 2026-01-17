@@ -78,6 +78,8 @@ trap 'rm -f "$TMP_FILE"' EXIT
 ## If its a response the format is ${PREFIX}.rsp.{c}.req.{d}.json
 ## where {c} is the frame_number and {d} is request_in
 
+echo "REQFILENAME,RSPFILENAME"
+
 jq -cr '
   # keep only real packet records with a frame number
   select(.layers? and .layers.frame_number?[0]?)
@@ -103,6 +105,12 @@ jq -cr '
 ' $INSPECTED_FILE \
 | \
 while IFS=$'\t' read -r fname json; do
-    printf '%s\n' "$json" > "${PREFIX}${fname}"
+
+    read -r reqkw reqnum rspkw rspnum jsonkw <<< "${fname//./ }"
+    reqfilename="$PREFIX.$reqkw.$reqnum.$rspkw.$rspnum.$jsonkw"
+    rspfilename="$PREFIX.$rspkw.$rspnum.$reqkw.$reqnum.$jsonkw"
+    echo $reqfilename,$rspfilename
+
+    printf '%s\n' "$json" | jq '.' > "${PREFIX}.${fname}"
 done
 

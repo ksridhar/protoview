@@ -40,5 +40,7 @@
   ./pvrrdump -P xxx. 10002.jsonl
   ```
   Will create files with the prefix 'xxx.'
+- There is a sample Makefile that can be looked at to 
+  run commands starting from pvinspect onwards.
 
 

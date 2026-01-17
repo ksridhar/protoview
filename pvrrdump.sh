@@ -106,11 +106,16 @@ jq -cr '
 | \
 while IFS=$'\t' read -r fname json; do
 
-    read -r reqkw reqnum rspkw rspnum jsonkw <<< "${fname//./ }"
-    reqfilename="$PREFIX.$reqkw.$reqnum.$rspkw.$rspnum.$jsonkw"
-    rspfilename="$PREFIX.$rspkw.$rspnum.$reqkw.$reqnum.$jsonkw"
-    echo $reqfilename,$rspfilename
+    #echo "fname=$fname"
+
+    read -r from fromnum to tonum jsonkw <<< "${fname//./ }"
+    if [[ $from == req* ]]
+    then
+        reqfilename="$PREFIX.$from.$fromnum.$to.$tonum.$jsonkw"
+        rspfilename="$PREFIX.$to.$tonum.$from.$fromnum.$jsonkw"
+        echo $reqfilename,$rspfilename
+    fi
 
     printf '%s\n' "$json" | jq '.' > "${PREFIX}.${fname}"
-done
+done 
 

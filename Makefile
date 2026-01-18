@@ -1,7 +1,7 @@
 all: xxx.pvrrenumi_map.csv
 
 xxx.pvrrenumi_map.csv: xxx.pvrrdump_map.csv
-	./pvrenumi.sh $< > $@
+	./pvrrenumi.sh $< > $@
 
 xxx.pvrrdump_map.csv: 10002.run.05.jsonl
 	./pvrrdump.sh -P xxx 10002.run.05.jsonl > $@

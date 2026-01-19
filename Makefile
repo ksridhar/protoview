@@ -22,8 +22,8 @@ xxx.pvrrdump_map.csv: 10002.run.05.jsonl
 
 test: xxx.testseqd.01.html xxx.testseqd.02.html
 
-xxx.testseqd.01.html: pvseqdtempl.html pvtestseqd.puml
-	./pvgenseqdhtml.sh --template-html $< --puml-source pvtestseqd.puml > $@
+xxx.testseqd.01.html: pvseqdtempl.html pvtestseqd1.puml
+	./pvgenseqdhtml.sh --template-html $< --puml-source pvtestseqd1.puml > $@
 
 xxx.testseqd.02.html: pvseqdtempl.html pvtestseqd2.puml
 	./pvgenseqdhtml.sh --template-html $< --puml-source pvtestseqd2.puml > $@

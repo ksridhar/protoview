@@ -1,0 +1,31 @@
+@startuml
+skinparam svgLinkTarget my_display_frame
+
+participant "FFmpeg Generator" as Gen
+participant "MediaMTX" as MTX
+participant "FFplay Reader" as Read
+
+Gen -> MTX : [[https://en.m.wikipedia.org/wiki/Real-Time_Streaming_Protocol Push RTSP Stream]]
+activate MTX
+MTX -> MTX : Buffer stream
+MTX -> Read : [[https://en.m.wikipedia.org/wiki/FFmpeg Deliver to Client]]
+deactivate MTX
+
+note over Gen, Read : Below are extra steps to force vertical length
+
+Gen -> MTX : Health Check
+Gen -> MTX : Send Metadata
+Gen -> MTX : Stream Data
+MTX -> Read : Relay Data
+
+Gen -> MTX : Health Check
+Gen -> MTX : Send Metadata
+Gen -> MTX : Stream Data
+MTX -> Read : Relay Data
+
+Gen -> MTX : Health Check
+Gen -> MTX : Send Metadata
+Gen -> MTX : Stream Data
+MTX -> Read : Relay Data
+
+@enduml

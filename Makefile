@@ -1,4 +1,4 @@
-all: xxx.pvrrenumi_map.csv
+all: xxx.pvrrenumi_map.csv xxx.testseqd.html
 
 xxx.pvrrenumi_map.csv: xxx.pvrrdump_map.csv
 	./pvrrenumi.sh $< > $@
@@ -12,11 +12,14 @@ xxx.pvrrdump_map.csv: 10002.run.05.jsonl
 10002.run.05.pcapng:
 	unzip 10002.run.05.pcapng.zip
 
-.PHONY: clean 
+xxx.testseqd.html: pvtestseqd.puml pvseqdtempl.html
+	./pvgenseqdhtml.sh --puml-source pvtestseqd.puml --template-html pvseqdtempl.html > $@
 
+.PHONY: clean 
 clean:
 	rm -rfv xxx.pvrrenumi_map.csv
 	rm -rfv xxx.pvrrdump_map.csv
 	rm -rfv xxx.*.json
+	rm -rfv xxx.testseqd.html
 	rm -rfv 10002.run.05.jsonl
 	rm -rfv 10002.run.05.pcapng

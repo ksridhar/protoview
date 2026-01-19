@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Architecture Preview</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #f0f0f0; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
+        
+        /* 1. Scrollbar for the Sequence Diagram */
+        #diagram-wrapper {
+            flex: 0 0 40%; /* Takes up 40% of height */
+            overflow-y: auto; 
+            border: 2px solid #666;
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        #diagram-container svg { width: 100%; height: auto; display: block; }
+
+        .controls { margin-bottom: 10px; }
+
+        /* 2. Scrollbar for the Iframe */
+        #display-frame {
+            flex: 1; /* Takes up remaining space */
+            width: 100%;
+            border: 2px solid #333;
+            background: white;
+            /* Iframes naturally have scrollbars, but we ensure it's forced if content overflows */
+            overflow: auto; 
+        }
+        
+        button { cursor: pointer; padding: 5px 15px; }
+    </style>
+</head>
+<body>
+
+    <div id="diagram-wrapper">
+        <div id="diagram-container">Rendering Diagram...</div>
+    </div>
+
+    <div class="controls">
+        <button onclick="document.getElementById('display-frame').src='about:blank'">Reset Preview</button>
+    </div>
+
+    <iframe name="my_display_frame" id="display-frame" src="about:blank"></iframe>
+
+    
+
+    <script src="https://unpkg.com/plantuml-encoder/dist/plantuml-encoder.min.js"></script>
+    <script>
+        // Backticks are essential to handle multi-line content from sed
+        const pumlCode = `
+%SPEC%
+`;
+
+        function render() {
+            const container = document.getElementById('diagram-container');
+            // Ensure links target our frame name
+            const fullCode = "@startuml\nskinparam svgLinkTarget my_display_frame\n" + 
+                             pumlCode + 
+                             "\n@enduml";
+
+            const encoded = plantumlEncoder.encode(fullCode);
+            const svgUrl = 'https://www.plantuml.com/plantuml/svg/' + encoded;
+
+            fetch(svgUrl)
+                .then(r => r.text())
+                .then(svg => { container.innerHTML = svg; })
+                .catch(e => { container.innerHTML = "Error: Check PlantUML syntax."; });
+        }
+        window.onload = render;
+    </script>
+</body>
+</html>
+

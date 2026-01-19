@@ -56,9 +56,12 @@
         function render() {
             const container = document.getElementById('diagram-container');
             // Ensure links target our frame name
+            /*
             const fullCode = "@startuml\nskinparam svgLinkTarget my_display_frame\n" + 
                              pumlCode + 
                              "\n@enduml";
+             */
+            const fullCode = pumlCode;
 
             const encoded = plantumlEncoder.encode(fullCode);
             const svgUrl = 'https://www.plantuml.com/plantuml/svg/' + encoded;

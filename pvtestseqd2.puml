@@ -1,46 +1,49 @@
 @startuml
 skinparam svgLinkTarget my_display_frame
 
+' 1. Define Participants with aliases to avoid naming conflicts
 participant "a2ui-client" as a2ui_client
 participant "a2ui-source" as a2ui_source
 
-note left of "a2ui-client" : 127.0.0.1:44908
-"a2ui-client" -> "a2ui-source" : [[file:///home/bard/xxx.req.244.rsp.248.json GET /.well-known/agent-card.json]]
-note right of "a2ui-source" : 127.0.0.1:10002
+' 2. Sequence Transactions
+note left of a2ui_client : 127.0.0.1:44908
+a2ui_client -> a2ui_source : [[file:///home/bard/xxx.req.244.rsp.248.json GET /.well-known/agent-card.json]]
+note right of a2ui_source : 127.0.0.1:10002
 
-note right of "a2ui-source" : 127.0.0.1:10002
-"a2ui-source" -> "a2ui-client" : [[file:///home/bard/xxx.rsp.248.req.244.json 200 OK]]
-note left of "a2ui-client" : 127.0.0.1:44908
+note right of a2ui_source : 127.0.0.1:10002
+a2ui_source -> a2ui_client : [[file:///home/bard/xxx.rsp.248.req.244.json 200 OK]]
+note left of a2ui_client : 127.0.0.1:44908
 
-note left of "a2ui-client" : 127.0.0.1:44908
-"a2ui-client" -> "a2ui-source" : [[file:///home/bard/xxx.req.250.rsp.252.json OPTIONS /]]
-note right of "a2ui-source" : 127.0.0.1:10002
+note left of a2ui_client : 127.0.0.1:44908
+a2ui_client -> a2ui_source : [[file:///home/bard/xxx.req.250.rsp.252.json OPTIONS /]]
+note right of a2ui_source : 127.0.0.1:10002
 
-note right of "a2ui-source" : 127.0.0.1:10002
-"a2ui-source" -> "a2ui-client" : [[file:///home/bard/xxx.rsp.252.req.250.json 200 OK]]
-note left of "a2ui-client" : 127.0.0.1:44908
+note right of a2ui_source : 127.0.0.1:10002
+a2ui_source -> a2ui_client : [[file:///home/bard/xxx.rsp.252.req.250.json 200 OK]]
+note left of a2ui_client : 127.0.0.1:44908
 
-note left of "a2ui-client" : 127.0.0.1:44914
-"a2ui-client" -> "a2ui-source" : [[file:///home/bard/xxx.req.259.rsp.271.json POST /]]
-note right of "a2ui-source" : 127.0.0.1:10002
+note left of a2ui_client : 127.0.0.1:44914
+a2ui_client -> a2ui_source : [[file:///home/bard/xxx.req.259.rsp.271.json POST /]]
+note right of a2ui_source : 127.0.0.1:10002
 
-note right of "a2ui-source" : 127.0.0.1:10002
-"a2ui-source" -> "a2ui-client" : [[file:///home/bard/xxx.rsp.271.req.259.json 200 OK]]
-note left of "a2ui-client" : 127.0.0.1:44914
+note right of a2ui_source : 127.0.0.1:10002
+a2ui_source -> a2ui_client : [[file:///home/bard/xxx.rsp.271.req.259.json 200 OK]]
+note left of a2ui_client : 127.0.0.1:44914
 
-note left of "a2ui-client" : 127.0.0.1:44914
-"a2ui-client" -> "a2ui-source" : [[file:///home/bard/xxx.req.307.rsp.315.json POST /]]
-note right of "a2ui-source" : 127.0.0.1:10002
+note left of a2ui_client : 127.0.0.1:44914
+a2ui_client -> a2ui_source : [[file:///home/bard/xxx.req.307.rsp.315.json POST /]]
+note right of a2ui_source : 127.0.0.1:10002
 
-note right of "a2ui-source" : 127.0.0.1:10002
-"a2ui-source" -> "a2ui-client" : [[file:///home/bard/xxx.rsp.315.req.307.json 200 OK]]
-note left of "a2ui-client" : 127.0.0.1:44914
+note right of a2ui_source : 127.0.0.1:10002
+a2ui_source -> a2ui_client : [[file:///home/bard/xxx.rsp.315.req.307.json 200 OK]]
+note left of a2ui_client : 127.0.0.1:44914
 
-note left of "a2ui-client" : 127.0.0.1:59296
-"a2ui-client" -> "a2ui-source" : [[file:///home/bard/xxx.req.334.rsp.347.json POST /]]
-note right of "a2ui-source" : 127.0.0.1:10002
+note left of a2ui_client : 127.0.0.1:59296
+a2ui_client -> a2ui_source : [[file:///home/bard/xxx.req.334.rsp.347.json POST /]]
+note right of a2ui_source : 127.0.0.1:10002
 
-note right of "a2ui-source" : 127.0.0.1:10002
-"a2ui-source" -> "a2ui-client" : [[file:///home/bard/xxx.rsp.347.req.334.json 200 OK]]
-note left of "a2ui-client" : 127.0.0.1:59296
+note right of a2ui_source : 127.0.0.1:10002
+a2ui_source -> a2ui_client : [[file:///home/bard/xxx.rsp.347.req.334.json 200 OK]]
+note left of a2ui_client : 127.0.0.1:59296
+
 @enduml

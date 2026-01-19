@@ -8,7 +8,7 @@ Usage: pvrrenumi.sh [OPTIONS] <dump_output.csv>
 
 Options:
   -h, --help         : Show this help.
-  --destringjson     : Destringify the http_file_data JSON payload if possible.
+  --destringjson     : Destringify and pretty-print the http_file_data JSON payload.
 
 Example:
    pvrrenumi.sh --destringjson pvrrdump_map.csv
@@ -75,16 +75,20 @@ do
         # 1. Extract the raw payload
         RAW_PAYLOAD=$(jq -r '.layers.http_file_data[0] // ""' "$FILENAME")
 
-        # 2. Write the Body File
+        # 2. Write and Format the Body File
         if [ -n "$RAW_PAYLOAD" ]; then
             if [ "$DESTRING" = true ]; then
-                # Attempt to destringify. If it fails, cat the raw payload instead.
-                # 'fromjson' is used to decode the string.
-                if ! echo "$RAW_PAYLOAD" | jq -e 'fromjson' > "$BODYFILE" 2>/dev/null; then
-                    echo "$RAW_PAYLOAD" > "$BODYFILE"
+                # Attempt: fromjson -> pretty print
+                if ! echo "$RAW_PAYLOAD" | jq 'fromjson' > "$BODYFILE" 2>/dev/null; then
+                    # Fallback: Is it already JSON? If so, pretty print it.
+                    if ! echo "$RAW_PAYLOAD" | jq '.' > "$BODYFILE" 2>/dev/null; then
+                        # Final Fallback: Not JSON at all, save as raw text.
+                        echo "$RAW_PAYLOAD" > "$BODYFILE"
+                    fi
                 fi
             else
-                echo "$RAW_PAYLOAD" > "$BODYFILE"
+                # No destring requested, but still try to pretty-print if it's JSON
+                echo "$RAW_PAYLOAD" | jq '.' > "$BODYFILE" 2>/dev/null || echo "$RAW_PAYLOAD" > "$BODYFILE"
             fi
         else
             : > "$BODYFILE"

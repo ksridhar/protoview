@@ -5,7 +5,7 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: pvrrdisp.sh [OPTIONS] <dump_output.csv>
+Usage: pvrrenumi.sh [OPTIONS] <dump_output.csv>
 
 Read the output (csv) of the pvrrdump.sh command and output
 a csv that describes the interactions.
@@ -14,7 +14,7 @@ Options:
   -h, --help : Show this help. optional.
 
 Example:
-   pvrrdisp.sh pvrrdump_map.csv
+   pvrrenumi.sh pvrrdump_map.csv
 USAGE
 }
 

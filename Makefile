@@ -1,6 +1,6 @@
 CUR_DIR := $(shell pwd)
 
-all: xxx.seqd.html xxx.testseqd.01.html xxx.testseqd.02.html
+all: xxx.seqd.html # test
 
 xxx.seqd.html: pvseqdtempl.html xxx.seqd.puml
 	./pvgenseqdhtml.sh --template-html $< --puml-source xxx.seqd.puml > $@
@@ -28,15 +28,8 @@ xxx.testseqd.01.html: pvseqdtempl.html pvtestseqd1.puml
 xxx.testseqd.02.html: pvseqdtempl.html pvtestseqd2.puml
 	./pvgenseqdhtml.sh --template-html $< --puml-source pvtestseqd2.puml > $@
 
-
 .PHONY: clean 
 clean:
-	rm -rfv xxx.pvrrenumi_map.csv
-	rm -rfv xxx.pvrrdump_map.csv
-	rm -rfv xxx.*.json
-	rm -rfv xxx.testseqd.01.html
-	rm -rfv xxx.testseqd.02.html
+	rm -rfv xxx.*
 	rm -rfv 10002.run.05.jsonl
 	rm -rfv 10002.run.05.pcapng
-	rm -rfv xxx.seqd.html
-	rm -rfv xxx.seqd.puml

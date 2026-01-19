@@ -1,25 +1,47 @@
 <!DOCTYPE html>
-
-<!DOCTYPE html>
 <html>
+<head>
+    <style>
+        #diagram-container svg { width: 100%; height: auto; }
+        #display-frame {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #333;
+            margin-top: 20px;
+        }
+    </style>
+</head>
 <body>
-    <h2>My Architecture Diagram</h2>
-    <object id="diagram" type="image/svg+xml" data=""></object>
+
+    <h2>Architecture Diagram (Direct Injection)</h2>
+    <div id="diagram-container">Loading diagram...</div>
+
+    <hr>
+    <h3>Iframe Preview</h3>
+    <iframe name="my_display_frame" id="display-frame" src="about:blank"></iframe>
 
     <script src="https://unpkg.com/plantuml-encoder/dist/plantuml-encoder.min.js"></script>
     <script>
         const pumlCode = `@startuml
-        Alice -> Bob: [[https://www.google.com/ hello]]
-        Bob -> Alice: Hi!
+        skinparam svgLinkTarget my_display_frame
+        Alice -> Bob: [[https://en.m.wikipedia.org/wiki/Real-Time_Streaming_Protocol RTSP Info]]
+        Bob -> Alice: [[https://en.m.wikipedia.org/wiki/FFmpeg FFmpeg Info]]
         @enduml`;
 
         const encoded = plantumlEncoder.encode(pumlCode);
-        
-        // Use the /svg/ endpoint
-        const svgUrl = 'http://www.plantuml.com/plantuml/svg/' + encoded;
-        
-        // Update the 'data' attribute of the object tag
-        document.getElementById('diagram').data = svgUrl;
+        const svgUrl = 'https://www.plantuml.com/plantuml/svg/' + encoded;
+
+        // Fetch the SVG and inject it into the page
+        fetch(svgUrl)
+            .then(response => response.text())
+            .then(svgText => {
+                // Inject the raw SVG code
+                document.getElementById('diagram-container').innerHTML = svgText;
+            })
+            .catch(err => {
+                console.error("Error loading SVG:", err);
+                document.getElementById('diagram-container').innerText = "Failed to load diagram.";
+            });
     </script>
 </body>
 </html>

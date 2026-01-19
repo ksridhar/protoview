@@ -1,40 +1,35 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-#set -x
 
 usage() {
   cat <<'USAGE'
 Usage: pvrrenumi.sh [OPTIONS] <dump_output.csv>
 
-Read the output (csv) of the pvrrdump.sh command and output
-a csv that describes the interactions.
-
 Options:
-  -h, --help : Show this help. optional.
+  -h, --help         : Show this help.
+  --destringjson     : Destringify the http_file_data JSON payload if possible.
 
 Example:
-   pvrrenumi.sh pvrrdump_map.csv
+   pvrrenumi.sh --destringjson pvrrdump_map.csv
 USAGE
 }
 
-# Parse arguments with getopt
-PARSED_ARGS=$(getopt -o h --long help -- "$@")
+DESTRING=false
+PARSED_ARGS=$(getopt -o h --long help,destringjson -- "$@")
 if [ $? -ne 0 ]; then
   usage
   exit 2
 fi
 
-# Safe eval of getopt output
-# shellcheck disable=SC2086
 eval set -- "$PARSED_ARGS"
 
 while true; do
   case "$1" in
-    -P|--prefix)
-      PREFIX="$2"
-      shift 2
-        ;;
+    --destringjson)
+      DESTRING=true
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -62,46 +57,45 @@ if [ ! -f "$RR_FILE" ]; then
   exit 1
 fi
 
-TMP_FILE="$(mktemp -t reqrspdump.XXXXXX)"   
-trap 'rm -f "$TMP_FILE"' EXIT
+# Print Header
+echo "MSGTYPE,FROMIP,FROMPORT,TOIP,TOPORT,METHOD,URI,RESPCODE,RESPPHRASE,FILENAME,HTTPBODYFILENAME"
 
-echo "MSGTYPE,FROMIP,FROMPORT,TOIP,TOPORT,METHOD,URI,RESPCODE,RESPPHRASE,FILENAME"
-
-cat $RR_FILE | sed '1d' |\
-while IFS=',' read -r reqfilename rspfilename
+# Skip CSV header and iterate
+sed '1d' "$RR_FILE" | while IFS=',' read -r reqfilename rspfilename
 do
-    #echo "reqfilename=$reqfilename"
-    #echo "rspfilename=$rspfilename"
+    # Process both Request and Response
+    for FILENAME in "$reqfilename" "$rspfilename"; do
+        # Strip quotes from CSV values
+        FILENAME=$(echo "$FILENAME" | tr -d '"')
+        
+        if [ ! -f "$FILENAME" ]; then continue; fi
 
-    # request
+        BODYFILE="${FILENAME%.json}.httpbody.json"
 
-    jq -r "[
-        \"REQ\",
-        .layers.ip_src[0],
-        .layers.tcp_srcport[0],
-        .layers.ip_dst[0],
-        .layers.tcp_dstport[0],
-        .layers.http_request_method[0],
-        .layers.http_request_uri[0],
-        \"\",
-        \"\",
-        \"$reqfilename\"
-        ] | @csv" $reqfilename
+        # 1. Extract the raw payload
+        RAW_PAYLOAD=$(jq -r '.layers.http_file_data[0] // ""' "$FILENAME")
 
-    # response
+        # 2. Write the Body File
+        if [ -n "$RAW_PAYLOAD" ]; then
+            if [ "$DESTRING" = true ]; then
+                # Attempt to destringify. If it fails, cat the raw payload instead.
+                # 'fromjson' is used to decode the string.
+                if ! echo "$RAW_PAYLOAD" | jq -e 'fromjson' > "$BODYFILE" 2>/dev/null; then
+                    echo "$RAW_PAYLOAD" > "$BODYFILE"
+                fi
+            else
+                echo "$RAW_PAYLOAD" > "$BODYFILE"
+            fi
+        else
+            : > "$BODYFILE"
+        fi
 
-    jq -r "[
-        \"RSP\",
-        .layers.ip_src[0],
-        .layers.tcp_srcport[0],
-        .layers.ip_dst[0],
-        .layers.tcp_dstport[0],
-        \"\",
-        \"\",
-        .layers.http_response_code[0],
-        .layers.http_response_phrase[0],
-        \"$rspfilename\"
-        ] | @csv" $rspfilename
-
+        # 3. Output CSV Row
+        jq -r --arg fname "$FILENAME" --arg bname "$BODYFILE" '
+            if .layers.http_request_method then
+                ["REQ", .layers.ip_src[0], .layers.tcp_srcport[0], .layers.ip_dst[0], .layers.tcp_dstport[0], .layers.http_request_method[0], .layers.http_request_uri[0], "", "", $fname, $bname]
+            else
+                ["RSP", .layers.ip_src[0], .layers.tcp_srcport[0], .layers.ip_dst[0], .layers.tcp_dstport[0], "", "", .layers.http_response_code[0], .layers.http_response_phrase[0], $fname, $bname]
+            end | @csv' "$FILENAME"
+    done
 done
-

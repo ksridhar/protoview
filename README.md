@@ -8,6 +8,9 @@
 - <https://github.com/PiRogueToolSuite/pcapng-utils>
 - <https://pts-project.org/>
 - <https://github.com/gaainf/pcaper>
+- <https://kroki.io/>
+- <https://www.wireshark.org/>
+- <https://plantuml.com/link>
 
 ## Phases
 

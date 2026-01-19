@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>My Architecture Diagram</h2>
+    <object id="diagram" type="image/svg+xml" data=""></object>
+
+    <script src="https://unpkg.com/plantuml-encoder/dist/plantuml-encoder.min.js"></script>
+    <script>
+        const pumlCode = `@startuml
+        Alice -> Bob: [[https://www.google.com/ hello]]
+        Bob -> Alice: Hi!
+        @enduml`;
+
+        const encoded = plantumlEncoder.encode(pumlCode);
+        
+        // Use the /svg/ endpoint
+        const svgUrl = 'http://www.plantuml.com/plantuml/svg/' + encoded;
+        
+        // Update the 'data' attribute of the object tag
+        document.getElementById('diagram').data = svgUrl;
+    </script>
+</body>
+</html>

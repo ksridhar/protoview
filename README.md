@@ -43,7 +43,7 @@ See [make dependency tree](./make.tree.txt)
 
 - [captured sample](./10002.run.05.pcapng.zip)
 
-### Creating a sequence diagram in HTML
+### Creating a sequence diagram (HTML)
 
 ```
 make
@@ -70,12 +70,16 @@ python3 pvrrenumitopuml.py --folder-path /home/sridhar/github_projects/protoview
 # (plantuml sequence diagram) -> (html sequence diagram)
 ./pvgenseqdhtml.sh --template-html pvseqdtempl.html --puml-source xxx.seqd.puml > seqd.html
 ```
-Output : [html sequence diagram](https://htmlpreview.github.io/?https://github.com/ksridhar/protoview/blob/main/seqd.html)
+
+### Viewing the created sequence diagram
+```
+make viewseq
+```
 
 ### A view of make dependencies
-
 ```
 make xxx.make.tree.txt
 ```
 Output : [make dependency tree](./make.tree.txt)
+
 

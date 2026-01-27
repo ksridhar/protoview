@@ -1,8 +1,8 @@
 CUR_DIR := $(shell pwd)
 
-all: seqd.html # test
+all: xxx.seqd.html # test
 
-seqd.html: pvseqdtempl.html xxx.seqd.puml
+xxx.seqd.html: pvseqdtempl.html xxx.seqd.puml
 	@echo
 	# (plantuml sequence diagram) -> (html sequence diagram)
 	./pvgenseqdhtml.sh --template-html $< --puml-source xxx.seqd.puml > $@
@@ -64,3 +64,12 @@ clean:
 	rm -rfv xxx.*
 	rm -rfv 10002.run.05.jsonl
 	rm -rfv 10002.run.05.pcapng
+
+#----------------------------------------------------------------------------
+
+.PHONY: viewseq
+
+viewseq: xxx.seqd.html
+	xdg-open $<
+
+

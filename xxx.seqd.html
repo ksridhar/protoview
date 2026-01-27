@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Architecture Preview</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #f0f0f0; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
+        
+        /* 1. Scrollbar for the Sequence Diagram */
+        #diagram-wrapper {
+            flex: 0 0 40%; /* Takes up 40% of height */
+            overflow-y: auto; 
+            border: 2px solid #666;
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        #diagram-container svg { width: 100%; height: auto; display: block; }
+
+        .controls { margin-bottom: 10px; }
+
+        /* 2. Scrollbar for the Iframe */
+        #display-frame {
+            flex: 1; /* Takes up remaining space */
+            width: 100%;
+            border: 2px solid #333;
+            background: white;
+            /* Iframes naturally have scrollbars, but we ensure it's forced if content overflows */
+            overflow: auto; 
+        }
+        
+        button { cursor: pointer; padding: 5px 15px; }
+    </style>
+</head>
+<body>
+
+    <div id="diagram-wrapper">
+        <div id="diagram-container">Rendering Diagram...</div>
+    </div>
+
+    <div class="controls">
+        <button onclick="document.getElementById('display-frame').src='about:blank'">Reset Preview</button>
+    </div>
+
+    <iframe name="my_display_frame" id="display-frame" src="about:blank"></iframe>
+
+    
+
+    <script src="https://unpkg.com/plantuml-encoder/dist/plantuml-encoder.min.js"></script>
+    <script>
+        // Backticks are essential to handle multi-line content from sed
+        const pumlCode = `
+@startuml
+skinparam svgLinkTarget my_display_frame
+
+participant "a2ui-client" as a2ui_client
+participant "a2ui-source" as a2ui_source
+
+note left of a2ui_client : 127.0.0.1:44908
+a2ui_client -> a2ui_source : [[file:///home/sridhar/github_projects/protoview/xxx.req.244.rsp.248.json GET /.well-known/agent-card.json]]  [[file:///home/sridhar/github_projects/protoview/xxx.req.244.rsp.248.httpbody.json body]]
+note right of a2ui_source : 127.0.0.1:10002
+
+note right of a2ui_source : 127.0.0.1:10002
+a2ui_source -> a2ui_client : [[file:///home/sridhar/github_projects/protoview/xxx.rsp.248.req.244.json 200 OK]]  [[file:///home/sridhar/github_projects/protoview/xxx.rsp.248.req.244.httpbody.json body]]
+note left of a2ui_client : 127.0.0.1:44908
+
+note left of a2ui_client : 127.0.0.1:44908
+a2ui_client -> a2ui_source : [[file:///home/sridhar/github_projects/protoview/xxx.req.250.rsp.252.json OPTIONS /]]  [[file:///home/sridhar/github_projects/protoview/xxx.req.250.rsp.252.httpbody.json body]]
+note right of a2ui_source : 127.0.0.1:10002
+
+note right of a2ui_source : 127.0.0.1:10002
+a2ui_source -> a2ui_client : [[file:///home/sridhar/github_projects/protoview/xxx.rsp.252.req.250.json 200 OK]]  [[file:///home/sridhar/github_projects/protoview/xxx.rsp.252.req.250.httpbody.json body]]
+note left of a2ui_client : 127.0.0.1:44908
+
+note left of a2ui_client : 127.0.0.1:44914
+a2ui_client -> a2ui_source : [[file:///home/sridhar/github_projects/protoview/xxx.req.259.rsp.271.json POST /]]  [[file:///home/sridhar/github_projects/protoview/xxx.req.259.rsp.271.httpbody.json body]]
+note right of a2ui_source : 127.0.0.1:10002
+
+note right of a2ui_source : 127.0.0.1:10002
+a2ui_source -> a2ui_client : [[file:///home/sridhar/github_projects/protoview/xxx.rsp.271.req.259.json 200 OK]]  [[file:///home/sridhar/github_projects/protoview/xxx.rsp.271.req.259.httpbody.json body]]
+note left of a2ui_client : 127.0.0.1:44914
+
+note left of a2ui_client : 127.0.0.1:44914
+a2ui_client -> a2ui_source : [[file:///home/sridhar/github_projects/protoview/xxx.req.307.rsp.315.json POST /]]  [[file:///home/sridhar/github_projects/protoview/xxx.req.307.rsp.315.httpbody.json body]]
+note right of a2ui_source : 127.0.0.1:10002
+
+note right of a2ui_source : 127.0.0.1:10002
+a2ui_source -> a2ui_client : [[file:///home/sridhar/github_projects/protoview/xxx.rsp.315.req.307.json 200 OK]]  [[file:///home/sridhar/github_projects/protoview/xxx.rsp.315.req.307.httpbody.json body]]
+note left of a2ui_client : 127.0.0.1:44914
+
+note left of a2ui_client : 127.0.0.1:59296
+a2ui_client -> a2ui_source : [[file:///home/sridhar/github_projects/protoview/xxx.req.334.rsp.347.json POST /]]  [[file:///home/sridhar/github_projects/protoview/xxx.req.334.rsp.347.httpbody.json body]]
+note right of a2ui_source : 127.0.0.1:10002
+
+note right of a2ui_source : 127.0.0.1:10002
+a2ui_source -> a2ui_client : [[file:///home/sridhar/github_projects/protoview/xxx.rsp.347.req.334.json 200 OK]]  [[file:///home/sridhar/github_projects/protoview/xxx.rsp.347.req.334.httpbody.json body]]
+note left of a2ui_client : 127.0.0.1:59296
+
+@enduml
+`;
+
+        function render() {
+            const container = document.getElementById('diagram-container');
+            // Ensure links target our frame name
+            /*
+            const fullCode = "@startuml\nskinparam svgLinkTarget my_display_frame\n" + 
+                             pumlCode + 
+                             "\n@enduml";
+             */
+            const fullCode = pumlCode;
+
+            const encoded = plantumlEncoder.encode(fullCode);
+            const svgUrl = 'https://www.plantuml.com/plantuml/svg/' + encoded;
+
+            fetch(svgUrl)
+                .then(r => r.text())
+                .then(svg => { container.innerHTML = svg; })
+                .catch(e => { container.innerHTML = "Error: Check PlantUML syntax."; });
+        }
+        window.onload = render;
+    </script>
+</body>
+</html>
+

@@ -46,7 +46,7 @@ xxx.testseqd.02.html: pvseqdtempl.html pvtestseqd2.puml
 
 THIS_FILE := $(lastword $(MAKEFILE_LIST))
 
-xxx.make.tree.txt: $(THIS_FILE)
+make.tree.txt: $(THIS_FILE)
 	@command -v make2graph >/dev/null 2>&1 || { echo "Warning: make2graph is not installed.";}
 	@if [ ! -d "../makefile2graph" ]; then \
 		echo "ERROR: Directory '../makefile2graph' not present!"; \

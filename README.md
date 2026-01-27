@@ -14,14 +14,17 @@
 
 ## Phases
 
-- pvcapture : capture protocol messages exchanged between applications
-  (typically HTTP clients and servers)
-- pvinspect : inspect the captured messages produced by pvcaptured and
-  dump them as jsonl
-- pvrrdump  : perform a request, response file dumps using the inspected 
-  jsonl obtained using pvinspect
-- pvrender  : TODO: render to D3, mermaid, graphviz
- 
+| Phase | Command | Comment |
+|-------|---------|---------|
+| 1     | pvcapture | capture protocol messages exchanged between applications (typically HTTP clients and servers) |
+| 2     | pvinspect | inspect the captured messages produced by pvcaptured and dump them as jsonl |
+| 3     | pvrrdump  | dump requests and response as files and create a csv listing them |
+| 4     | pvrrnumi  | enumerate each request and response with body and references to files |
+| 5     | pvrrenumitopuml | convert request and response to a plantuml diagram |
+| 6     | pvgenseqdhtml   | present the platuml diagram in html |
+
+See [make dependency tree](./make.tree.txt)
+
 ## Running
 
 ### Capturing packets
@@ -73,5 +76,5 @@ Output : [html sequence diagram](./xxx.seqd.html)
 ```
 make xxx.make.tree.txt
 ```
-Output : [make dependency tree](./xxx.make.tree.txt)
+Output : [make dependency tree](./make.tree.txt)
 

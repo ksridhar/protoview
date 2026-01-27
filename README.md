@@ -22,34 +22,56 @@
   jsonl obtained using pvinspect
 - pvrender  : TODO: render to D3, mermaid, graphviz
  
-## How to Run
+## Running
+
+### Capturing packets
 
 - Run these commands to capture messages on port 10002 on the local machine
   ```
   sudo usermod -a -G wireshark {your username}
   newgrp wireshark
   bash
-  ./pvcapture.sh 10002 > 10002.pcapng
+  ./pvcapture.sh 10002 > 10002.pcapng   # 10002 is the server port number
   ```
 - Run the applications
 - Stop the applications
 - Stop the pvcapture (CTRL+C)
-- Dump HTTP messages pertaining to port 10002
-  ```
-  ./pvinspect -p 10002 10002.pcapng > 10002.jsonl
-  ```
-- Create separate json files for request and responses
-  ```
-  ./pvrrdump -P xxx. 10002.jsonl > 10002.rr.csv
-  ```
-  Will create files with the prefix 'xxx.' and store the
-  request,response file table in 10002.rr.csv
-- Enumerate the interactions using pvrrenumi.sh
-  ```
-  ./pvrrenumi 10002.rr.csv > 10002.enumi.csv
-  ```
-- There is a sample Makefile that can be looked at to 
-  run commands starting from pvinspect onwards.
 
+- [captured sample](./10002.run.05.pcapng.zip)
 
+### Creating a sequence diagram in HTML
+
+```
+make
+```
+Ouputs the following
+```
+# unzip (A2UI process interaction packet capture zip)
+unzip 10002.run.05.pcapng.zip
+Archive:  10002.run.05.pcapng.zip
+  inflating: 10002.run.05.pcapng     
+
+# (packet capture (pcapng)) -> (json-lines (jsonl))
+./pvinspect.sh -p 10002 10002.run.05.pcapng > 10002.run.05.jsonl
+
+# (json-lines (jsonl)) -> ((request, response) files, (request, response) csv)
+./pvrrdump.sh -P xxx 10002.run.05.jsonl > xxx.pvrrdump_map.csv
+
+# ((request, response) csv) -> ((request, response) interaction with httpbody as csv)
+./pvrrenumi.sh xxx.pvrrdump_map.csv > xxx.pvrrenumi_map.csv
+
+# ((request, response) interaction with httpbody as csv) -> (plantuml sequence diagram)
+python3 pvrrenumitopuml.py --folder-path /home/sridhar/github_projects/protoview xxx.pvrrenumi_map.csv > xxx.seqd.puml
+
+# (plantuml sequence diagram) -> (html sequence diagram)
+./pvgenseqdhtml.sh --template-html pvseqdtempl.html --puml-source xxx.seqd.puml > xxx.seqd.html
+```
+Output : [html sequence diagram](./xxx.seqd.html)
+
+### A view of make dependencies
+
+```
+make xxx.make.tree.txt
+```
+Output : [make dependency tree](./xxx.make.tree.txt)
 

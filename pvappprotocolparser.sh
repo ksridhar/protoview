@@ -10,16 +10,13 @@ A2UI_MAP_FILE = "a2ui-specmap.csv"
 SCHEMA_FILE = "annotated-json-schema.json"
 
 def log_error(msg):
-    """Prints errors to stderr."""
     print(f"ERROR: {msg}", file=sys.stderr)
 
 def log_verbose(msg, verbose):
-    """Prints verbose info to stderr if flag is set."""
     if verbose:
         print(f"VERBOSE: {msg}", file=sys.stderr)
 
 def load_csv_map(filename):
-    """Loads CSV spec map into a dictionary: {symbol: description}."""
     spec_map = {}
     try:
         with open(filename, mode='r', encoding='utf-8') as f:
@@ -31,28 +28,49 @@ def load_csv_map(filename):
         log_error(f"Could not read {filename}: {e}")
         sys.exit(1)
 
-def annotate_node(key, value, path, protocol, rpc_map, a2ui_map):
-    """
-    Recursively transforms a standard JSON node into an Annotated Node.
-    """
-    # Determine current description
+def get_smart_description(key, protocol, path, rpc_map, a2ui_map):
+    # Select the map based on current protocol context
     current_map = rpc_map if protocol == "jsonrpc" else a2ui_map
-    description = current_map.get(key, f"Field defined within the {protocol} protocol context.")
     
-    # Check for Gateway transition
-    # Logic: If we are in jsonrpc and key is params/result, check if child looks like A2UI
-    next_protocol = protocol
-    if protocol == "jsonrpc" and key in ["params", "result"]:
-        v_str = str(value)
-        if '"surfaces"' in v_str or '"components"' in v_str:
-            next_protocol = "a2ui"
+    # 1. Check the specific CSV map
+    if key in current_map:
+        return current_map[key]
+    
+    # 2. Contextual Fallbacks
+    if protocol == "a2ui":
+        if ".props" in path:
+            return "A2UI Property: A configuration attribute for this component."
+        if ".data" in path:
+            return "A2UI Data: A dynamic state variable for this component."
+        if ".children" in path:
+            return "A2UI Child: Reference to a nested component ID."
+        return f"A2UI Structure: Part of the declarative UI tree ({key})."
+    
+    if protocol == "jsonrpc":
+        if ".params" in path:
+            return "Method Parameter: Input data required by the remote method."
+        return f"JSON-RPC Envelope: Structural member of the RPC protocol."
 
-    # Prepare the Annotated Node structure
+    return f"Field in {protocol} context."
+
+def annotate_node(key, value, path, protocol, rpc_map, a2ui_map):
+    # --- GATEWAY LOGIC ---
+    # If we are currently in jsonrpc, check if we should switch to a2ui
+    next_protocol = protocol
+    if protocol == "jsonrpc":
+        # If the value is a dict and contains A2UI root keys, switch context
+        if isinstance(value, dict) and ("surfaces" in value or "components" in value):
+            next_protocol = "a2ui"
+    
+    # Get the description based on the protocol we just determined
+    description = get_smart_description(key, next_protocol, path, rpc_map, a2ui_map)
+    
     node = {
-        "protocol": protocol,
+        "protocol": next_protocol,
         "path": path,
         "key": key,
         "description": description,
+        "category": "Terminal" if not isinstance(value, (dict, list)) else "Non-Terminal",
         "value": None
     }
 
@@ -73,55 +91,39 @@ def annotate_node(key, value, path, protocol, rpc_map, a2ui_map):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Protocol Parser: Annotates JSON files with JSON-RPC and A2UI specifications."
+        description="pvappprotocolparser: Context-aware JSON-RPC to A2UI converter."
     )
-    parser.add_argument("input_file", help="Path to the file to be processed (empty/text files are ignored).")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Increase output verbosity to stderr.")
-    parser.add_argument("--validate", action="store_true", help="Validate final output against the annotated-json-schema.json.")
+    parser.add_argument("input_file", help="The file to process.")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output to stderr.")
+    parser.add_argument("--validate", action="store_true", help="Validate vs annotated-json-schema.json.")
     
     args = parser.parse_args()
 
-    # 1. Sniffing Phase
-    if not os.path.exists(args.input_file):
-        log_error(f"File not found: {args.input_file}")
-        sys.exit(1)
-
-    if os.path.getsize(args.input_file) == 0:
-        log_verbose("Input file is empty. Ignoring.", args.verbose)
+    if not os.path.exists(args.input_file) or os.path.getsize(args.input_file) == 0:
         return
 
     try:
         with open(args.input_file, 'r') as f:
             raw_data = json.load(f)
-    except json.JSONDecodeError:
-        log_verbose("Input is not valid JSON (Text file). Ignoring.", args.verbose)
+    except:
         return
 
-    # 2. Loading Resources
-    log_verbose("Loading specification maps...", args.verbose)
     rpc_map = load_csv_map(JSONRPC_MAP_FILE)
     a2ui_map = load_csv_map(A2UI_MAP_FILE)
 
-    # 3. Traversal Phase
-    log_verbose("Starting recursive annotation...", args.verbose)
+    # Start recursion
     annotated_output = annotate_node("root", raw_data, "root", "jsonrpc", rpc_map, a2ui_map)
 
-    # 4. Optional Validation Phase
     if args.validate:
-        log_verbose("Validating output against schema...", args.verbose)
         try:
             import jsonschema
             with open(SCHEMA_FILE, 'r') as s:
                 schema = json.load(s)
             jsonschema.validate(instance=annotated_output, schema=schema)
-            log_verbose("Validation successful.", args.verbose)
-        except ImportError:
-            log_error("jsonschema library not found. Skipping validation.")
         except Exception as e:
-            log_error(f"Schema Validation Failed: {e}")
+            log_error(f"Validation Error: {e}")
             sys.exit(1)
 
-    # 5. Output
     print(json.dumps(annotated_output, indent=2))
 
 if __name__ == "__main__":

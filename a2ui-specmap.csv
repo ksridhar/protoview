@@ -1,0 +1,16 @@
+Category,Symbol,Description,Context
+Non-Terminal,<a2ui_payload>,The root container for an A2UI message containing surfaces and components.,Global
+Terminal,surfaces,A map defining named entry points (viewports) for the UI.,Root
+Terminal,components,An adjacency list (array) containing all UI component definitions.,Root
+Terminal,version,The version of the A2UI specification being used (e.g. 0.8).,Root
+Non-Terminal,<component_node>,A single UI element definition within the components array.,Component
+Terminal,id,A unique string identifier for a specific component.,Component
+Terminal,type,The widget type to be rendered (e.g. text button container).,Component
+Terminal,props,A map of static configuration properties for the component.,Component
+Terminal,data,A map of dynamic state or values bound to the component.,Component
+Terminal,children,An array of component IDs that are nested within this component.,Structure
+Terminal,events,A map of interaction triggers (e.g. onClick) to actions.,Interaction
+Non-Terminal,<action_object>,A declarative description of what happens when an event triggers.,Interaction
+Terminal,onClick,An event type triggered by a pointer click or tap.,Event
+Terminal,onChange,An event type triggered by a value change in an input.,Event
+Terminal,onSubmit,An event type triggered by a form or group submission.,Event

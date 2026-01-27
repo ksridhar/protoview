@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Annotated Protocol Node",
+  "description": "A structural node containing both the data and its protocol-specific metadata.",
+  "type": "object",
+  "properties": {
+    "protocol": {
+      "type": "string",
+      "enum": ["jsonrpc", "a2ui"],
+      "description": "The protocol context identified by the stack at this position."
+    },
+    "path": {
+      "type": "string",
+      "description": "The breadcrumb path to this node (e.g., 'root.params.surfaces[0]')."
+    },
+    "key": {
+      "type": "string",
+      "description": "The key name from the input JSON."
+    },
+    "description": {
+      "type": "string",
+      "description": "The human-readable documentation pulled from the external CSV maps."
+    },
+    "category": {
+      "type": "string",
+      "enum": ["Terminal", "Non-Terminal", "Unknown"],
+      "description": "Classification from the spec map."
+    },
+    "value": {
+      "description": "The actual value from the input. Can be a primitive, or a recursive list of Annotated Protocol Nodes.",
+      "oneOf": [
+        { "type": ["string", "number", "boolean", "null"] },
+        { "type": "array", "items": { "$ref": "#" } },
+        { "type": "array", "items": { "type": "object", "additionalProperties": { "$ref": "#" } } }
+      ]
+    }
+  },
+  "required": ["protocol", "key", "description", "value"]
+}

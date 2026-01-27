@@ -1,0 +1,16 @@
+Category,Symbol,Description,Context
+Non-Terminal,<json_rpc_message>,The root element; can be a single unit or an array (batch).,Global
+Non-Terminal,<request_object>,An invocation of a method that expects a response.,Request
+Non-Terminal,<notification_object>,A request that does not require and must not receive a response.,Request
+Non-Terminal,<response_object>,The output returned by the server upon successful execution.,Response
+Non-Terminal,<error_object>,The output returned by the server when a call fails.,Response/Error
+Terminal,jsonrpc,"The mandatory version key. Value must be ""2.0"".",Envelope
+Terminal,method,A string containing the name of the remote method.,Request
+Terminal,params,A container for the method arguments (Array or Object).,Request
+Terminal,id,An identifier used to correlate request/response pairs.,Envelope
+Terminal,result,The value returned on success. Mutually exclusive with error.,Response
+Terminal,error,An object containing error details. Mutually exclusive with result.,Error
+Terminal,code,An integer error code (e.g. -32601 for Method Not Found).,Error
+Terminal,message,"A concise, human-readable summary of the error.",Error
+Terminal,data,Optional primitive or structured data about the error.,Error
+Non-Terminal,<batch_request>,An array containing one or more Request/Notification objects.,Batch

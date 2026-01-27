@@ -12,6 +12,10 @@
 - <https://www.wireshark.org/>
 - <https://plantuml.com/link>
 - <https://www.jsonrpc.org/specification>
+- <https://a2a-protocol.org/latest/>
+- <https://a2a-protocol.org/latest/specification/#appendix-b-relationship-to-mcp-model-context-protocol>
+- <https://a2ui.org/>
+- <https://a2ui.org/specification/v0.8-a2ui/>
 
 ## Phases
 

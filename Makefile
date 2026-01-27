@@ -1,8 +1,8 @@
 CUR_DIR := $(shell pwd)
 
-all: xxx.seqd.html # test
+all: seqd.html # test
 
-xxx.seqd.html: pvseqdtempl.html xxx.seqd.puml
+seqd.html: pvseqdtempl.html xxx.seqd.puml
 	@echo
 	# (plantuml sequence diagram) -> (html sequence diagram)
 	./pvgenseqdhtml.sh --template-html $< --puml-source xxx.seqd.puml > $@

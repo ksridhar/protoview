@@ -68,9 +68,9 @@ Archive:  10002.run.05.pcapng.zip
 python3 pvrrenumitopuml.py --folder-path /home/sridhar/github_projects/protoview xxx.pvrrenumi_map.csv > xxx.seqd.puml
 
 # (plantuml sequence diagram) -> (html sequence diagram)
-./pvgenseqdhtml.sh --template-html pvseqdtempl.html --puml-source xxx.seqd.puml > xxx.seqd.html
+./pvgenseqdhtml.sh --template-html pvseqdtempl.html --puml-source xxx.seqd.puml > seqd.html
 ```
-Output : [html sequence diagram](./xxx.seqd.html)
+Output : [html sequence diagram](https://htmlpreview.github.io/?https://github.com/ksridhar/protoview/blob/main/seqd.html)
 
 ### A view of make dependencies
 

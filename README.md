@@ -18,11 +18,11 @@
 | Phase | Command | Comment |
 |-------|---------|---------|
 | 1     | pvcapture | capture protocol messages exchanged between applications (typically HTTP clients and servers) |
-| 2     | pvinspect | inspect the captured messages and dump them as jsonl |
-| 3     | pvrrdump  | use captured jsonl messages and dump them as requests and response files with a csv listing correlating them |
-| 4     | pvrrenumi | use the request, response files to enumerate each request, response with body and references to files |
-| 5     | pvrrenumitopuml | convert the request, response with body enumeration to a plantuml diagram |
-| 6     | pvgenseqdhtml   | present the platuml diagram in html |
+| 2     | pvinspect | captured messages -> json-lines |
+| 3     | pvrrdump  | json-lines -> (requests and response files + correlating csv) |
+| 4     | pvrrenumi | (correlating csv) -> (request, response with body csv) |
+| 5     | pvrrenumitopuml | (request, response with body csv) -> (plantuml diagram) |
+| 6     | pvgenseqdhtml   | (platuml diagram) -> html |
 
 See [make dependency tree](./make.tree.txt)
 

@@ -86,4 +86,10 @@ make xxx.make.tree.txt
 ```
 Output : [make dependency tree](./make.tree.txt)
 
+### Choose a HTTP body and expand/collapse
+
+```
+pvhttpbodychooser.sh -l
+pvhttpbodychooser.sh 1
+```
 

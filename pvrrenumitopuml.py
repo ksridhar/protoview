@@ -75,16 +75,19 @@ def main():
                 from_ip_port = f"{row['FROMIP']}:{row['FROMPORT']}"
                 to_ip_port = f"{row['TOIP']}:{row['TOPORT']}"
                 filename = row['FILENAME'].strip()
+                bodyfilename = row['HTTPBODYFILENAME'].strip()
                 
                 # Construct the file:/// URL
                 # Ensure no double slashes if folder_path ends in /
                 full_path = os.path.join(args.folder_path, filename)
                 file_url = f"file://{full_path}"
+                full_path = os.path.join(args.folder_path, bodyfilename)
+                bodyfile_url = f"file://{full_path}"
 
                 if msg_type == "REQ":
                     caption = f"{row['METHOD']} {row['URI']}"
                     puml.append(f"note left of {from_alias} : {from_ip_port}")
-                    puml.append(f"{from_alias} -> {to_alias} : [[{file_url} {caption}]]")
+                    puml.append(f"{from_alias} -> {to_alias} : [[{file_url} {caption}]]  [[{bodyfile_url} body]]")
                     puml.append(f"note right of {to_alias} : {to_ip_port}")
                 
                 elif msg_type == "RSP":
@@ -92,7 +95,7 @@ def main():
                     code = row['RESPCODE'].split('.')[0] if '.' in row['RESPCODE'] else row['RESPCODE']
                     caption = f"{code} {row['RESPPHRASE']}"
                     puml.append(f"note right of {to_alias} : {from_ip_port}")
-                    puml.append(f"{to_alias} -> {from_alias} : [[{file_url} {caption}]]")
+                    puml.append(f"{to_alias} -> {from_alias} : [[{file_url} {caption}]]  [[{bodyfile_url} body]]")
                     puml.append(f"note left of {from_alias} : {to_ip_port}")
                 
                 puml.append("") # Spacer for readability
